@@ -95,12 +95,14 @@ struct AppleDriftBackground: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                Color(.systemBackground)
+                LinearGradient(
+                    colors: [tint.opacity(0.16), tint.opacity(0.05)],
+                    startPoint: .top, endPoint: .bottom)
                 ForEach(motes.indices, id: \.self) { i in
                     let m = motes[i]
                     Image(systemName: "apple.logo")
                         .font(.system(size: m.size))
-                        .foregroundStyle(tint.opacity(0.07))
+                        .foregroundStyle(Color.white.opacity(0.55))
                         .position(x: geo.size.width * m.x,
                                   y: geo.size.height * m.y)
                         .offset(y: drift && !reduceMotion ? -m.travel : m.travel)
