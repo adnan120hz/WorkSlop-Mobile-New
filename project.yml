@@ -1,0 +1,28 @@
+name: WorkSlop
+options:
+  bundleIdPrefix: com.adnan120hz
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  WorkSlop:
+    type: application
+    platform: iOS
+    sources:
+      - path: WorkSlop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adnan120hz.workslop
+        MARKETING_VERSION: "14.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+  WorkSlopUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: WorkSlopUITests
+    dependencies:
+      - target: WorkSlop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adnan120hz.workslop.uitests

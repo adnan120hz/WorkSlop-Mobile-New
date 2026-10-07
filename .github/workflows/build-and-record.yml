@@ -1,0 +1,50 @@
+name: Build + UI tour recording
+
+# Manual only. Produces a simulator build and a screen recording of the
+# scripted UI tour for maintainer review. Publishes nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build for simulator
+        run: |
+          xcodebuild build \
+            -project WorkSlop.xcodeproj \
+            -scheme WorkSlop \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Boot simulator + record UI tour
+        run: |
+          SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone 16' | grep -oE '[0-9A-F-]{36}')
+          xcrun simctl boot "$SIM_ID" || true
+          xcrun simctl io "$SIM_ID" recordVideo --force "$RUNNER_TEMP/tour.mp4" &
+          REC_PID=$!
+          sleep 2
+          xcodebuild test \
+            -project WorkSlop.xcodeproj \
+            -scheme WorkSlop \
+            -destination "platform=iOS Simulator,id=$SIM_ID" \
+            CODE_SIGNING_ALLOWED=NO || true
+          kill -INT $REC_PID || true
+          sleep 2
+          ls -la "$RUNNER_TEMP/tour.mp4"
+
+      - name: Upload recording
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-tour-recording
+          path: ${{ runner.temp }}/tour.mp4
+          if-no-files-found: warn
