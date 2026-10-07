@@ -293,7 +293,7 @@ struct HomeView: View {
     /// right on Home, as requested.
     private var menuLinks: some View {
         VStack(spacing: 10) {
-            homeMenuLink("app.badge", "Custom Icons", "Bookmark icons from Cowabunga or your own PNG") {
+            homeMenuLink("app.badge", "Custom Icons", "Your own bookmark icons from image files") {
                 CustomIconsView()
             }
             homeMenuLink("photo.on.rectangle", "Themes", "PosterBoard .tendies + Templates .batter") {
@@ -410,7 +410,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 Section("Safety") {
-                    Text("Cancel means stopped. When the restore engine runs, cancelling stops at a safe point and never continues in the background. The desktop has no true mid-restore cancel either - it asks Abort or Resume if the device reconnects.")
+                    Text("Cancel here only unstages - nothing is in flight yet. A running restore has no true cancel on desktop either; it offers Abort or Resume if the device reconnects. This app never keeps working in the background after a stop.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Verify before restore. An apply checks the backup first; if any check fails, the whole apply is cancelled before anything is sent.")

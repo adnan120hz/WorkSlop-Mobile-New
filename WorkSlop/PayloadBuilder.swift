@@ -75,6 +75,28 @@ enum PayloadBuilder {
             }
         }
 
+        // Desktop seed: any Daemons apply also carries the six
+        // upstream always-included daemon states
+        // (daemons_tweak.py:220-227, loaded in tweak_loader.py).
+        // ftp-proxy-embedded is false on purpose - verbatim.
+        let daemonSeeds: [String: Any] = [
+            "com.apple.magicswitchd.companion": true,
+            "com.apple.security.otpaird": true,
+            "com.apple.dhcp6d": true,
+            "com.apple.bootpd": true,
+            "com.apple.ftp-proxy-embedded": false,
+            "com.apple.relevanced": true,
+        ]
+        for (groupKey, entry) in grouped
+        where groupKey.hasSuffix("|com.apple.xpc.launchd/disabled.plist") {
+            var merged = grouped[groupKey]!
+            for (k, v) in daemonSeeds where merged.values[k] == nil {
+                merged.values[k] = v
+            }
+            grouped[groupKey] = merged
+            warnings.append("disabled.plist also carries the desktop's six always-included daemon seed states (one of them, ftp-proxy-embedded, is false on desktop).")
+        }
+
         var files: [BuiltFile] = []
 
         // Custom Icons delivery: one WebClip folder per complete

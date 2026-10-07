@@ -5,7 +5,7 @@ import SwiftUI
 /// Mobile supports on iOS and what it needs before anything is applied.
 ///
 /// The support lines mirror the desktop support matrix: partial-restore
-/// tweaks cover the iOS 17.4–26.x line on desktop, Liquid Glass keys
+/// tweaks cover the desktop 16.0 to <27.0 support line; Liquid Glass keys
 /// live on iOS 26+, the S8 (Latest) payload targets iOS 26.0+, and
 /// iOS 27 follows the desktop's separate full-flow handling. On-device
 /// sending stays behind the restore engine, which is not verified on
@@ -22,7 +22,7 @@ struct IntroView: View {
                     icon: nil,
                     title: "WorkSlop",
                     lines: [
-                        "On-device tweaks for this iPhone: Liquid Glass, Status Bar, Daemons, Apple Internal, Custom Icons and PosterBoard — picked from the bottom menus.",
+                        "On-device tweaks for this iPhone: Liquid Glass, Status Bar, Daemons, Apple Internal, SpringBoard, Custom Icons and Themes — picked from the bottom menus.",
                         "This device: \(DeviceStatus.modelOrDash) • iOS \(DeviceInfoEx.fullVersion)",
                     ])
                 .tag(0)
@@ -33,8 +33,8 @@ struct IntroView: View {
                     lines: [
                         "Liquid Glass (regular set): iOS 26.0 and later.",
                         "Liquid Glass iOS 26.6.1 RC S8: iOS 26.0 and later.",
-                        "Status Bar struct: iOS 18 to <27.",
-                        "SpringBoard / Apple Internal / Daemons: iOS 17.4–26.x, gated per tweak on the tab — a tweak is only locked when this iOS is outside its range.",
+                        "Status Bar classic options: iOS 26.x (iOS 27 keeps carrier text only).",
+                        "Everything rides the desktop 16.0 to <27.0 support line, gated per tweak on its page - a tweak is only locked when this iOS is outside its range. Status Bar classic options are iOS 26.x; iOS 27 keeps carrier text only.",
                         "Devices below iOS 16.0 or on iOS 27+ get a full-screen \"iOS version not supported\" notice instead of this app.",
                     ])
                 .tag(1)

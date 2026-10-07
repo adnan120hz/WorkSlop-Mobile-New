@@ -6,7 +6,7 @@ import Foundation
 // Feature.swift, extracted verbatim from the desktop tree (citations
 // per entry). PayloadBuilder builds real staging files from this data.
 // Sending them to the system still rides the restore engine, which is
-// not connected yet — see ApplyBar.
+// not connected yet.
 //
 // How to read the desktop citations:
 // - A registry entry written with `_t(...)` and no explicit `value=` uses
@@ -106,7 +106,7 @@ enum PayloadSpecCatalog {
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
                     restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
-                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard; descriptors mode only - the database is never touched in this mode). Cap: 10 descriptors. Structure version is 61 on iOS 26 (59 on older lines) and is read from the device during the targeted backup."
+                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard; descriptors mode only - the database is never touched in this mode). Cap: 5 descriptors (desktop MAX_TENDIES_PER_RESTORE). Structure version is 61 on iOS 26 (59 on older lines)."
                 )
             ]
         ),
@@ -118,7 +118,7 @@ enum PayloadSpecCatalog {
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
                     restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
-                    fileTarget: "User-imported .batter template files (AppDomain-com.apple.PosterBoard on device)."
+                    fileTarget: "User-imported .batter templates. On desktop the restore domain/path for a template comes from that template's own config.json and is restored recursively per domain - there is no single fixed PosterBoard path for templates."
                 )
             ]
         ),
@@ -141,9 +141,30 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
-                    fileTarget: "Reset: stages removal of the delivered descriptors; PosterBoard rebuilds itself. The database is not part of this mode."
-                )
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.WallpaperKit.CollectionsPoster/descriptors",
+                    fileTarget: "Reset writes an EMPTY file here on desktop: CollectionsPoster descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
+                ),
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.MercuryPoster/descriptors",
+                    fileTarget: "Reset writes an EMPTY file here on desktop: MercuryPoster descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
+                ),
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.PhotosUIPrivate.PhotosPosterProvider/descriptors",
+                    fileTarget: "Reset writes an EMPTY file here on desktop: PhotosPosterProvider descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
+                ),
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/GalleryCache",
+                    fileTarget: "Reset writes an EMPTY file here on desktop: GalleryCache (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
+                ),
             ]
         ),
 

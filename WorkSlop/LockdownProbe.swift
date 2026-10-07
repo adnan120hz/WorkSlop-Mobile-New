@@ -60,9 +60,9 @@ enum LockdownProbe {
         return out
     }
 
-    /// Probe each tunnel address for a lockdownd answer. Completes
-    /// with the first positive result, or a negative one after all
-    /// candidates timed out (2 s each).
+    /// Probe the first tunnel address for a lockdownd answer (the
+    /// loopback route uses one utun address; checking the rest would
+    /// only repeat the same stack).
     static func probe(completion: @escaping (Result) -> Void) {
         let candidates = tunnelAddresses()
         guard let first = candidates.first else {

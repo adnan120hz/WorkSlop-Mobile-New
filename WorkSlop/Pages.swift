@@ -423,7 +423,7 @@ struct PosterBoardView: View {
                     } header: {
                         Text("PosterBoard (.tendies)")
                     } footer: {
-                        Text("Delivered descriptors, desktop style. Up to 10 files ride one apply.")
+                        Text("Descriptors ride a plain partial restore on desktop - no backup runs for this mode. Up to 5 files ride one apply (desktop cap).")
                     }
                     Section {
                         Button("Import Template file (.batter)") { importingTemplates = true }
@@ -445,7 +445,7 @@ struct PosterBoardView: View {
                     } header: {
                         Text("Templates (.batter)")
                     } footer: {
-                        Text("Different job from .tendies: templates work through the PosterBoard database side on desktop. Same targeted-backup route here.")
+                        Text("Different job from .tendies: template packages manage delivered PosterBoard content. (The database/Configurations side exists on desktop and is not offered on mobile.)")
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
@@ -454,7 +454,7 @@ struct PosterBoardView: View {
                     } header: {
                         Text("Delivery modes")
                     } footer: {
-                        Text("Both tables ride the desktop route: targeted container backup -> modify -> partial restore. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
+                        Text("Both tables deliver by partial restore, like the desktop Descriptors mode. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -511,7 +511,7 @@ enum TendiesStore {
     }
 
     static func save(url: URL, kind: String) -> Bool {
-        guard list(kind: kind).count < 10 else { return false }
+        guard list(kind: kind).count < 5 else { return false }
         let dest = dir(kind: kind).appendingPathComponent(url.lastPathComponent)
         do {
             if FileManager.default.fileExists(atPath: dest.path) {
@@ -653,7 +653,7 @@ struct ApplySection: View {
                     Section("Engine checks (parity with the desktop apply)") {
                         Label("Find My OFF (you check - the app cannot see it)", systemImage: "magnifyingglass")
                             .foregroundStyle(.secondary)
-                        Label("Protective backup verified before any write (desktop Phase 0)", systemImage: "checkmark.shield")
+                        Label("Protective backup gate: desktop runs it only in the iOS 27 flow - skipped on iOS 26", systemImage: "checkmark.shield")
                             .foregroundStyle(.secondary)
                         Label("Delivery status: prepared only - staged, not delivered", systemImage: "tray")
                             .foregroundStyle(.secondary)

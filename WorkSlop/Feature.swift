@@ -8,9 +8,9 @@ import Foundation
 enum DeliveryRoute: String {
     case partialRestore = "Partial restore"
     case fullBackup = "Full backup → modify → restore"
-    /// PosterBoard on desktop: pull the PosterBoard container with a
-    /// targeted backup, modify the files, deliver by partial restore.
-    case targetedBackupModify = "Targeted backup → modify → partial restore"
+    /// The desktop's targeted container backup exists only for the
+    /// PosterBoard Configurations (database) mode, which mobile does
+    /// not offer; mobile PosterBoard is Descriptors = partial restore.
 }
 
 /// iOS version window a feature supports. A feature is locked ONLY when
@@ -169,7 +169,7 @@ enum DeviceInfo {
 
 /// Staged (toggled-on) selections, persisted like the desktop's tweak
 /// staging. Staging is selection only: nothing is delivered until the
-/// on-device restore engine is verified — see ApplyBar.
+/// on-device restore engine is verified.
 final class SelectionStore: ObservableObject {
     @Published private(set) var staged: Set<String> {
         didSet {
@@ -204,9 +204,8 @@ final class SelectionStore: ObservableObject {
 }
 
 enum FeatureCatalog {
-    /// Solarium exists only on iOS 26; the desktop Liquid Glass sets are
-    /// iOS 26 tweaks. The full-backup route is proven for 26.6.x builds,
-    /// so the window closes before 26.7.
+    /// Solarium exists only on iOS 26; the desktop registry gives the
+    /// Liquid Glass set min 26.0 and no max, so the window has none.
     private static let ios26 = IOSWindow(min: (26, 0), maxExclusive: nil)
     /// Desktop overall support line (is_version_supported): 16.0–<27.0.
     private static let ios16to26 = IOSWindow(min: (16, 0), maxExclusive: (27, 0))
@@ -231,10 +230,10 @@ enum FeatureCatalog {
         Feature(
             id: "lg-latest",
             title: "Liquid Glass iOS 26.6.1 RC S8",
-            subtitle: "SolariumForceFallback → com.apple.SwiftUI.plist + 2 key lock-screen + specular",
+            subtitle: "SolariumForceFallback → com.apple.SwiftUI.plist + 2 key lock-screen + specular. Desktop arms this only on iOS 26.6.x builds 23G82/23G83.",
             section: "Liquid Glass",
             route: .fullBackup,
-            window: ios26),
+            window: IOSWindow(min: (26, 6), maxExclusive: (26, 7))),
 
         // Removed after the 2026-10-07 firmware audit (STRING ABSENT
         // in iOS 26.6.1 firmware): lg-disable-swiftui, sb-airdrop-limit,
@@ -400,10 +399,10 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios18plus),
 
         // --- PosterBoard (desktop PosterBoard page) ---
-        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10)", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
-        Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
-        Feature(id: "pb-video", title: "Video wallpaper (freeze frame export)", subtitle: "PosterBoard video tendies (loop / reverse / foreground)", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
-        Feature(id: "pb-reset", title: "Reset PosterBoard", subtitle: "Clears delivered descriptors; PosterBoard rebuilds itself", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
+        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-video", title: "Video wallpaper (freeze frame export)", subtitle: "PosterBoard video tendies (loop / reverse / foreground)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-reset", title: "Reset PosterBoard", subtitle: "Clears delivered descriptors; PosterBoard rebuilds itself", section: "PosterBoard", route: .partialRestore, window: ios16to26),
 
         // --- Custom Icons (desktop Custom Icons page) ---
         Feature(

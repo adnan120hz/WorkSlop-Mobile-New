@@ -95,6 +95,12 @@ struct FeatureRow: View {
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
+                        if !toggleEnabled {
+                            Text(availability.isEnabled ? ActivationGate.message : (availability.chipText ?? ""))
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .lineLimit(2)
+                        }
                     }
                     Spacer(minLength: 4)
                     infoButton
@@ -114,8 +120,16 @@ struct FeatureRow: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
-                        StatusChip(text: feature.route.rawValue)
-                            .padding(.top, 2)
+                        HStack(spacing: 6) {
+                            StatusChip(text: feature.route.rawValue)
+                            if let chip = availability.chipText {
+                                StatusChip(text: chip, warn: true)
+                            }
+                            if availability.isEnabled && !ActivationGate.unlocked {
+                                StatusChip(text: "Needs pairing file + VPN", warn: true)
+                            }
+                        }
+                        .padding(.top, 2)
                     }
                     Spacer(minLength: 8)
                     infoButton

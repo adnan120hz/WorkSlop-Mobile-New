@@ -7,7 +7,8 @@ struct WorkSlopApp: App {
 
     /// iOS line this build supports, patch included in the check via
     /// major/minor gates: every supported tweak window lives inside
-    /// iOS 17.4–26.x. iOS 27 and older-than-17.4 devices get the
+    /// iOS builds inside the desktop 16.0 to <27.0 support line.
+    /// Anything outside it gets the
     /// full-screen notice instead of an app that cannot serve them.
     private var iosSupported: Bool {
         // Desktop support line (is_version_supported): 16.0 <= v < 27.0.
