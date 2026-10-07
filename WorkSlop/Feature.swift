@@ -74,6 +74,41 @@ enum DeviceInfoEx {
         let v = ProcessInfo.processInfo.operatingSystemVersion
         return "\(v.majorVersion).\(v.minorVersion).\(v.patchVersion)"
     }
+
+    /// Build number of this device ("23G82") via kern.osversion.
+    static var buildNumber: String {
+        var size = 0
+        sysctlbyname("kern.osversion", nil, &size, nil, 0)
+        guard size > 0 else { return "-" }
+        var buf = [CChar](repeating: 0, count: size)
+        sysctlbyname("kern.osversion", &buf, &size, nil, 0)
+        let b = String(cString: buf)
+        return b.isEmpty ? "-" : b
+    }
+
+    /// "iOS 26.6.1 (23G82)" for display.
+    static var versionWithBuild: String {
+        "iOS \(fullVersion) (\(buildNumber))"
+    }
+}
+
+/// Activation gate (rule set by the user): no tweak can be switched
+/// on before BOTH the pairing file is imported AND a VPN tunnel is up
+/// on this device — the engine route needs both.
+enum ActivationGate {
+    static var pairingReady: Bool { PairingStore.isImported }
+    static var tunnelReady: Bool { DeviceStatus.vpnTunnelActive() }
+    static var unlocked: Bool { pairingReady && tunnelReady }
+
+    static var message: String {
+        if !pairingReady && !tunnelReady {
+            return "Locked: import the pairing file and start WireGuard first."
+        }
+        if !pairingReady {
+            return "Locked: import the pairing file (.plist) in Settings first."
+        }
+        return "Locked: start WireGuard (loopback tunnel) first."
+    }
 }
 
 enum DeviceStatus {
@@ -169,12 +204,12 @@ enum FeatureCatalog {
     /// Solarium exists only on iOS 26; the desktop Liquid Glass sets are
     /// iOS 26 tweaks. The full-backup route is proven for 26.6.x builds,
     /// so the window closes before 26.7.
-    private static let ios26 = IOSWindow(min: (26, 0), maxExclusive: (26, 7))
+    private static let ios26 = IOSWindow(min: (26, 0), maxExclusive: nil)
     /// Desktop overall support line (is_version_supported): 16.0–<27.0.
     private static let ios16to26 = IOSWindow(min: (16, 0), maxExclusive: (27, 0))
-    private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: (26, 1))
+    private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: nil) // registry min only
     private static let ios18plus = IOSWindow(min: (18, 0), maxExclusive: nil)
-    private static let ios18to26 = IOSWindow(min: (18, 0), maxExclusive: (27, 0))
+    private static let ios18to26 = IOSWindow(min: (26, 0), maxExclusive: (27, 0)) // desktop classic status-bar gate is 26.x
 
     /// Draws tweak titles and the keys actually written from the desktop
     /// registry (sections Liquid Glass, SpringBoard, Internal Options)
@@ -338,10 +373,10 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios18plus),
 
         // --- PosterBoard (desktop PosterBoard page) ---
-        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
-        Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .partialRestore, window: ios16to26),
-        Feature(id: "pb-video", title: "Video wallpaper (freeze frame export)", subtitle: "PosterBoard video tendies (loop / reverse / foreground)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
-        Feature(id: "pb-reset", title: "Reset PosterBoard", subtitle: "Clears delivered descriptors; PosterBoard rebuilds itself", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10)", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
+        Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
+        Feature(id: "pb-video", title: "Video wallpaper (freeze frame export)", subtitle: "PosterBoard video tendies (loop / reverse / foreground)", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
+        Feature(id: "pb-reset", title: "Reset PosterBoard", subtitle: "Clears delivered descriptors; PosterBoard rebuilds itself", section: "PosterBoard", route: .targetedBackupModify, window: ios16to26),
 
         // --- Custom Icons (desktop Custom Icons page) ---
         Feature(

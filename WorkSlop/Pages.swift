@@ -63,6 +63,9 @@ struct StatusBarView: View {
                 AppleDriftBackground()
                 List {
                     Section {
+                        LockBanner()
+                    }
+                    Section {
                         FeatureRow(feature: feature)
                         Toggle("Enable Status Bar Modifications", isOn: $masterOn)
                             .accessibilityIdentifier("sb-enable")
@@ -128,6 +131,9 @@ struct DaemonsView: View {
                 AppleDriftBackground()
                 List {
                     Section {
+                        LockBanner()
+                    }
+                    Section {
                         ForEach(FeatureCatalog.features(in: "Daemons")) { feature in
                             FeatureRow(feature: feature)
                         }
@@ -160,6 +166,9 @@ struct AppleInternalView: View {
             ZStack {
                 AppleDriftBackground()
                 List {
+                    Section {
+                        LockBanner()
+                    }
                     Section {
                         ForEach(FeatureCatalog.features(in: "Internal Options")) { feature in
                             FeatureRow(feature: feature)
@@ -348,6 +357,9 @@ struct PosterBoardView: View {
                 AppleDriftBackground()
                 List {
                     Section {
+                        LockBanner()
+                    }
+                    Section {
                         ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
                             FeatureRow(feature: feature)
                         }
@@ -364,6 +376,18 @@ struct PosterBoardView: View {
                 .modifier(ThemedListStyle(style: style))
             }
             .navigationTitle("PosterBoard")
+        }
+    }
+}
+
+/// Shown at the top of tweak lists while the pairing-file + VPN
+/// gate is closed (toggles stay unusable until both are in place).
+struct LockBanner: View {
+    var body: some View {
+        if !ActivationGate.unlocked {
+            Text(ActivationGate.message)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
     }
 }

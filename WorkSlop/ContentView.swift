@@ -162,7 +162,7 @@ struct HomeView: View {
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     modernTile("iphone", "Device",
-                               "\(DeviceStatus.modelOrDash)\niOS \(DeviceInfoEx.fullVersion)")
+                               "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")
                     modernTile("network", "VPN tunnel", vpnDetected ? "Detected" : "-")
                     modernTile("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
                     modernTile("checklist", "Staged", "\(selection.staged.count) selected")
@@ -227,7 +227,7 @@ struct HomeView: View {
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     mainTile("iphone", "Device",
-                             "\(DeviceStatus.modelOrDash)\niOS \(DeviceInfoEx.fullVersion)")
+                             "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")
                     mainTile("network", "VPN tunnel", vpnDetected ? "Detected" : "-")
                     mainTile("key.fill", "Pairing file", pairingImported ? "Imported" : "-")
                     mainTile("checklist", "Staged", "\(selection.staged.count) selected")

@@ -54,6 +54,12 @@ struct FeatureRow: View {
         feature.availability(for: DeviceInfo.iosVersion)
     }
 
+    /// Toggle is live only when the iOS supports the tweak AND the
+    /// pairing-file + VPN gate is open.
+    private var toggleEnabled: Bool {
+        availability.isEnabled && ActivationGate.unlocked
+    }
+
     private var infoButton: some View {
         Button {
             showInfo = true
@@ -70,7 +76,7 @@ struct FeatureRow: View {
             get: { selection.isOn(feature.id) },
             set: { selection.set(feature.id, $0) }))
             .labelsHidden()
-            .disabled(!availability.isEnabled)
+            .disabled(!toggleEnabled)
             .accessibilityIdentifier("toggle-\(feature.id)")
     }
 
@@ -135,6 +141,9 @@ struct FeatureRow: View {
                             if let chip = availability.chipText {
                                 StatusChip(text: chip, warn: true)
                             }
+                            if availability.isEnabled && !ActivationGate.unlocked {
+                                StatusChip(text: "Needs pairing file + VPN", warn: true)
+                            }
                         }
                         .padding(.top, 2)
                     }
@@ -188,6 +197,9 @@ struct LiquidGlassView: View {
             ZStack {
                 AppleDriftBackground()
                 List {
+                Section {
+                    LockBanner()
+                }
                 Section {
                     ForEach(latest) { feature in
                         FeatureRow(feature: feature)
