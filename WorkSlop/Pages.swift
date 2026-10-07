@@ -362,7 +362,7 @@ struct CustomIconsView: View {
                         editingIndex = nil
                     }
                 }
-                .onChange(of: picked) { _, item in
+                .onChange(of: picked) { item in
                     Task {
                         if let raw = try? await item?.loadTransferable(type: Data.self),
                            let image = UIImage(data: raw),
