@@ -64,7 +64,40 @@ struct Feature: Identifiable {
     func availability(for ios: (major: Int, minor: Int)) -> Availability {
         window.contains(ios)
             ? .supported
-            : .unsupported(reason: "Butuh \(window.label)")
+            : .unsupported(reason: "Requires \(window.label)")
+    }
+}
+
+enum DeviceStatus {
+    /// Hardware model identifier (e.g. "iPhone15,3") from utsname.
+    static var model: String {
+        var sys = utsname()
+        uname(&sys)
+        let bytes = Mirror(reflecting: sys.machine).children
+            .compactMap { $0.value as? Int8 }
+            .filter { $0 != 0 }
+            .map { UInt8(bitPattern: $0) }
+        return String(decoding: bytes, as: UTF8.self)
+    }
+
+    /// True while any VPN tunnel interface (utun*) is up with an
+    /// address — the state the WireGuard loopback tunnel produces.
+    /// A sandboxed app cannot tell which VPN app owns the tunnel,
+    /// only that one is active; the UI words it exactly that way.
+    static func vpnTunnelActive() -> Bool {
+        var addrs: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&addrs) == 0, let first = addrs else { return false }
+        defer { freeifaddrs(addrs) }
+        for ptr in sequence(first: first, next: { $0.pointee.ifa_next }) {
+            let flags = Int32(ptr.pointee.ifa_flags)
+            guard flags & IFF_UP != 0, flags & IFF_RUNNING != 0,
+                  let sa = ptr.pointee.ifa_addr,
+                  sa.pointee.sa_family == UInt8(AF_INET) || sa.pointee.sa_family == UInt8(AF_INET6)
+            else { continue }
+            let name = String(cString: ptr.pointee.ifa_name)
+            if name.hasPrefix("utun") { return true }
+        }
+        return false
     }
 }
 
@@ -98,7 +131,14 @@ final class SelectionStore: ObservableObject {
     func isOn(_ id: String) -> Bool { staged.contains(id) }
 
     func set(_ id: String, _ on: Bool) {
-        if on { staged.insert(id) } else { staged.remove(id) }
+        if on {
+            staged.insert(id)
+            // RTL and LTR layout forces exclude each other, as on desktop.
+            if id == "in-rtl" { staged.remove("in-ltr") }
+            if id == "in-ltr" { staged.remove("in-rtl") }
+        } else {
+            staged.remove(id)
+        }
         objectWillChange.send()
     }
 }
@@ -108,14 +148,19 @@ enum FeatureCatalog {
     /// iOS 26 tweaks. The full-backup route is proven for 26.6.x builds,
     /// so the window closes before 26.7.
     private static let ios26 = IOSWindow(min: (26, 0), maxExclusive: (26, 7))
+    private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: (26, 1))
     private static let ios18plus = IOSWindow(min: (18, 0), maxExclusive: nil)
+    private static let ios18to26 = IOSWindow(min: (18, 0), maxExclusive: (27, 0))
 
-    /// Mirrors the desktop registry sections/titles (Liquid Glass,
-    /// SpringBoard, Internal Options) plus the desktop Status Bar and
-    /// Custom Icons pages. Titles are the desktop's; subtitles name the
-    /// plist key each toggle stages. The desktop "Feature Flags" section
-    /// is deliberately absent: that delivery channel is proven closed on
-    /// retail iOS 26.6.1, so it cannot be honestly offered here.
+    /// Draws tweak titles and the keys actually written from the desktop
+    /// registry (sections Liquid Glass, SpringBoard, Internal Options)
+    /// plus the desktop Status Bar and Custom Icons pages. It is a
+    /// subset of the desktop catalog, not a full mirror: rows the
+    /// maintainer removed are absent. Subtitles name the plist key (or
+    /// file target) each toggle stages. The desktop "Feature Flags"
+    /// section still exists on desktop as a placeholder, but its
+    /// delivery channel is proven closed on retail iOS 26.6.1, so it is
+    /// not offered here.
     static let all: [Feature] = [
         // --- Liquid Glass (Terbaru) — the S8 payload, full-backup route.
         // SolariumForceFallback is read live by DesignLibrary from
@@ -123,7 +168,7 @@ enum FeatureCatalog {
         // on-screen effect is still a device-test question.
         Feature(
             id: "lg-latest",
-            title: "Liquid Glass (Terbaru)",
+            title: "Liquid Glass iOS 26.6.1 RC S8",
             subtitle: "SolariumForceFallback → com.apple.SwiftUI.plist + 2 key lock-screen + specular",
             section: "Liquid Glass",
             route: .fullBackup,
@@ -135,7 +180,7 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios26),
         Feature(id: "lg-disable-swiftui", title: "Disable Solarium (SwiftUI)",
                 subtitle: "com.apple.SwiftUI.DisableSolarium", section: "Liquid Glass",
-                route: .partialRestore, window: ios26),
+                route: .partialRestore, window: ios26_0),
         Feature(id: "lg-legibility-2", title: "Glass Legibility Value 2",
                 subtitle: "UIViewGlassLegibilitySetting = 2", section: "Liquid Glass",
                 route: .partialRestore, window: ios26),
@@ -180,14 +225,14 @@ enum FeatureCatalog {
             subtitle: "Carrier text, icons & overrides",
             section: "Status Bar",
             route: .partialRestore,
-            window: ios18plus),
+            window: ios18to26),
 
         // --- SpringBoard (desktop SpringBoard section) ---
         Feature(id: "sb-watchos-pairing", title: "Allow pairing with any watchOS version",
-                subtitle: "WatchOSCompatibility", section: "SpringBoard",
+                subtitle: "NanoRegistry pairing flag (no plist key)", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
         Feature(id: "sb-airdrop-limit", title: "Disable AirDrop Time Limit for Everyone Option",
-                subtitle: "AirDropDisableTimeLimit", section: "SpringBoard",
+                subtitle: "OverrideTimeLimitEveryoneMode", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
         Feature(id: "sb-dont-lock-crash", title: "Disable Lock After Respring",
                 subtitle: "SBDontLockAfterCrash", section: "SpringBoard",
@@ -207,14 +252,11 @@ enum FeatureCatalog {
         Feature(id: "sb-supervision-text", title: "Show Supervision Text on Lock Screen",
                 subtitle: "SBShowSupervisionTextOnLockScreen", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
-        Feature(id: "sb-floating-tab-bar", title: "Disable Floating Tab Bar",
-                subtitle: "UseFloatingTabBar = false", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
         Feature(id: "sb-icon-parallax", title: "Disable Icon Parallax",
-                subtitle: "SBDisableIconParallax", section: "SpringBoard",
+                subtitle: "SBDisableParallax", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
         Feature(id: "sb-hide-search", title: "Hide Search Button on Home Screen",
-                subtitle: "SBHideSearchAffordance", section: "SpringBoard",
+                subtitle: "SBHomeScreenShowsSearchAffordance = false", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
 
         // --- Internal Options (desktop Internal section) ---
@@ -228,7 +270,7 @@ enum FeatureCatalog {
                 subtitle: "NSForceLeftToRightWritingDirection", section: "Internal Options",
                 route: .partialRestore, window: ios18plus),
         Feature(id: "in-disable-thermal", title: "Disable Thermal",
-                subtitle: "DisableThermal", section: "Internal Options",
+                subtitle: "com.apple.thermalmonitord (disabled.plist)", section: "Internal Options",
                 route: .partialRestore, window: ios18plus),
         Feature(id: "in-hidden-icons", title: "Show Hidden Icons on Home Screen",
                 subtitle: "SBIconVisibility", section: "Internal Options",

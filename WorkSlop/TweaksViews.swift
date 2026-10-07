@@ -63,10 +63,10 @@ struct ApplyBar: View {
         .buttonStyle(.borderedProminent)
         .disabled(selection.staged.isEmpty)
         .accessibilityIdentifier("apply-button")
-        .alert("Mesin belum tersambung", isPresented: $showEngineNote) {
+        .alert("Engine not connected", isPresented: $showEngineNote) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("File pairing yang terimpor tidak sama dengan mesin restore yang terbukti. Belum ada yang dikirim ke device — Apply aktif hanya sesudah sesi restore on-device lolos verifikasi di iOS 26.6.1.")
+            Text("An imported pairing file is not a proven restore engine. Nothing has been sent to the device — Apply turns real only after an on-device restore session passes verification on iOS 26.6.1.")
         }
     }
 }
@@ -90,9 +90,9 @@ struct LiquidGlassView: View {
                         FeatureRow(feature: feature)
                     }
                 } header: {
-                    Text("Liquid Glass (Terbaru) — S8")
+                    Text("Liquid Glass (Latest) — S8")
                 } footer: {
-                    Text("SolariumForceFallback dibaca hidup oleh DesignLibrary dari com.apple.SwiftUI di iOS 26.6.1 (terverifikasi firmware). Efeknya di layar belum terbukti — diputus uji device terisolasi (backup penuh dulu, Low Power Mode mati, reboot sesudah apply).")
+                    Text("SolariumForceFallback is read live by DesignLibrary from com.apple.SwiftUI on iOS 26.6.1 (firmware-verified). Its on-screen effect is not proven — an isolated device test decides it (full backup first, Low Power Mode off, reboot after apply).")
                 }
 
                 Section {
@@ -102,7 +102,7 @@ struct LiquidGlassView: View {
                 } header: {
                     Text("Liquid Glass")
                 } footer: {
-                    Text("Set reguler lewat partial restore, sama seperti desktop.")
+                    Text("The regular set rides partial restore, same as on desktop.")
                 }
 
                 Section {

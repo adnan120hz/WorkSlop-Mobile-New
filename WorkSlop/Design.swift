@@ -18,9 +18,9 @@ enum UIStyle: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .workslop: return "WorkSlop v4"
+        case .workslop: return "WorkSlop v4 (Main)"
         case .nugget: return "Nugget"
-        case .modern: return "Modern"
+        case .modern: return "WorkSlop 2 (Classic)"
         }
     }
 
@@ -56,14 +56,12 @@ struct BrandTile: View {
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
 
     var body: some View {
-        RoundedRectangle(cornerRadius: Brand.tileCorner * style.tileCornerScale * size / 54)
-            .fill(style.tileFill)
+        Image("BrandIcon")
+            .resizable()
+            .scaledToFill()
             .frame(width: size, height: size)
-            .overlay(
-                Text("WS")
-                    .font(.system(size: size * 0.38, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
-            )
+            .clipShape(RoundedRectangle(
+                cornerRadius: Brand.tileCorner * style.tileCornerScale * size / 54))
     }
 }
 

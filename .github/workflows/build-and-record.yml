@@ -1,7 +1,8 @@
-name: Build + UI tour recording
+name: Build + screenshot check
 
-# Manual only. Produces a simulator build and a screen recording of the
-# scripted UI tour for maintainer review. Publishes nothing.
+# Manual only. Builds the app, runs the UI smoke test, takes a launch
+# screenshot, and packages an unsigned device IPA for sideload testing.
+# Publishes nothing.
 
 on:
   workflow_dispatch:
@@ -26,15 +27,12 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Boot simulator + record UI tour
+      - name: Boot simulator + screenshot smoke check
         run: |
           SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone 16' | grep -oE '[0-9A-F-]{36}')
           if [ -z "$SIM_ID" ]; then SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}'); fi
           echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIM_ID" || true
-          xcrun simctl io "$SIM_ID" recordVideo --force "$RUNNER_TEMP/tour.mp4" &
-          REC_PID=$!
-          sleep 2
           set +e
           xcodebuild test \
             -project WorkSlop.xcodeproj \
@@ -47,10 +45,7 @@ jobs:
           xcrun simctl launch --terminate-running-process "$SIM_ID" com.adnan120hz.workslop -DemoIOS26 || true
           sleep 3
           xcrun simctl io "$SIM_ID" screenshot "$RUNNER_TEMP/smoke-launch.png" || true
-          kill -INT $REC_PID || true
-          sleep 2
-          ls -la "$RUNNER_TEMP/tour.mp4"
-          if [ "$TEST_RC" != "0" ]; then echo "UI tour test failed (rc=$TEST_RC)"; exit 1; fi
+          if [ "$TEST_RC" != "0" ]; then echo "UI smoke test failed (rc=$TEST_RC)"; exit 1; fi
 
       - name: Build device IPA (unsigned, for sideload testing)
         run: |
@@ -65,13 +60,12 @@ jobs:
           (cd "$RUNNER_TEMP" && zip -qry WorkSlop-unsigned.ipa Payload)
           ls -la "$RUNNER_TEMP/WorkSlop-unsigned.ipa"
 
-      - name: Upload recording
+      - name: Upload build outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-tour-recording
+          name: build-outputs
           path: |
-            ${{ runner.temp }}/tour.mp4
             ${{ runner.temp }}/smoke-launch.png
             ${{ runner.temp }}/test-log.txt
             ${{ runner.temp }}/WorkSlop-unsigned.ipa
