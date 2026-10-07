@@ -6,11 +6,22 @@ struct ThemedListStyle: ViewModifier {
     let style: UIStyle
 
     func body(content: Content) -> some View {
-        if style == .workslop {
-            content.listStyle(.insetGrouped)
-        } else {
+        if style == .nugget {
             content.listStyle(.plain)
+        } else {
+            content.listStyle(.insetGrouped)
         }
+    }
+}
+
+/// Row backgrounds follow the UI color (purple/blue) so no menu
+/// shows plain white blocks; Nugget keeps the system background.
+struct ThemedRows: ViewModifier {
+    let style: UIStyle
+
+    func body(content: Content) -> some View {
+        content.listRowBackground(
+            style == .nugget ? nil : style.tint.opacity(0.16))
     }
 }
 
@@ -241,6 +252,7 @@ struct LiquidGlassView: View {
                 .scrollContentBackground(.hidden)
             }
             .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             .navigationTitle("Liquid Glass")
         }
     }

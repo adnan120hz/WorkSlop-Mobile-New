@@ -427,6 +427,8 @@ struct SettingsView: View {
                     }
                 }
             .scrollContentBackground(.hidden)
+            .modifier(ThemedListStyle(style: style))
+            .modifier(ThemedRows(style: style))
             }
             }
             .navigationTitle("Settings")

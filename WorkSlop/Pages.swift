@@ -119,6 +119,7 @@ struct StatusBarView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Status Bar")
         }
@@ -164,6 +165,7 @@ struct DaemonsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Daemons")
         }
@@ -200,6 +202,7 @@ struct AppleInternalView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Apple Internal")
         }
@@ -313,6 +316,7 @@ struct CustomIconsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Custom Icons")
             .sheet(item: Binding(
@@ -460,6 +464,7 @@ struct PosterBoardView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Themes")
             .fileImporter(isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "tendies") ?? .data],
@@ -558,6 +563,7 @@ struct SpringBoardView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
             }
             .navigationTitle("SpringBoard")
         }
@@ -584,6 +590,9 @@ struct LockBanner: View {
 /// iPhone, so after a real apply the user restarts manually.
 struct ApplySection: View {
     @EnvironmentObject private var selection: SelectionStore
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
+
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
     @State private var built: BuiltPayload?
     @State private var showSheet = false
     @State private var confirmCancel = false
@@ -677,6 +686,8 @@ struct ApplySection: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .modifier(ThemedListStyle(style: style))
+                .modifier(ThemedRows(style: style))
                 .navigationTitle("Apply")
                 .toolbar {
                     Button("Done") { showSheet = false }
