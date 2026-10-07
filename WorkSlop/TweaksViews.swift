@@ -82,7 +82,9 @@ struct LiquidGlassView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                AppleDriftBackground()
+                List {
                 Section {
                     ForEach(latest) { feature in
                         FeatureRow(feature: feature)
@@ -106,8 +108,9 @@ struct LiquidGlassView: View {
                 Section {
                     ApplyBar()
                 }
+                }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
             .navigationTitle("Liquid Glass")
         }
     }
@@ -116,7 +119,9 @@ struct LiquidGlassView: View {
 struct TweaksView: View {
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                AppleDriftBackground()
+                List {
                 ForEach(FeatureCatalog.sections.filter { $0 != "Liquid Glass" }, id: \.self) { section in
                     Section(section) {
                         ForEach(FeatureCatalog.features(in: section)) { feature in
@@ -128,8 +133,9 @@ struct TweaksView: View {
                 Section {
                     ApplyBar()
                 }
+                }
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
             .navigationTitle("Tweaks")
         }
     }

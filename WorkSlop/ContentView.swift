@@ -9,22 +9,18 @@ struct ContentView: View {
     var body: some View {
         TabView {
             HomeView()
-                .appleDriftBackground(style)
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .accessibilityIdentifier("tab-home")
 
             LiquidGlassView()
-                .appleDriftBackground(style)
                 .tabItem { Label("Liquid Glass", systemImage: "square.stack.3d.up.fill") }
                 .accessibilityIdentifier("tab-liquid-glass")
 
             TweaksView()
-                .appleDriftBackground(style)
                 .tabItem { Label("Tweaks", systemImage: "slider.horizontal.3") }
                 .accessibilityIdentifier("tab-tweaks")
 
             SettingsView()
-                .appleDriftBackground(style)
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                 .accessibilityIdentifier("tab-settings")
         }
@@ -39,7 +35,9 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                AppleDriftBackground()
+                ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
                         BrandTile()
@@ -117,6 +115,7 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+                }
             }
             .navigationTitle("Home")
             .onAppear { pairingImported = PairingStore.isImported }
@@ -134,7 +133,9 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            ZStack {
+                AppleDriftBackground()
+                List {
                 Section("App") {
                     LabeledContent("Versi", value: "14.0")
                     LabeledContent("Repo", value: "WorkSlop-Mobile-New")
@@ -175,8 +176,9 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-            }
             .scrollContentBackground(.hidden)
+            }
+            }
             .navigationTitle("Settings")
             .onAppear { pairingImported = PairingStore.isImported }
             .fileImporter(

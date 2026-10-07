@@ -71,9 +71,13 @@ struct BrandTile: View {
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
 struct AppleDriftBackground: View {
-    var tint: Color = Brand.blue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
+
+    private var tint: Color {
+        (UIStyle(rawValue: uiStyleRaw) ?? .workslop).tint
+    }
 
     private struct Mote {
         let x, y, size, delay, duration, travel, spin: Double
@@ -128,7 +132,7 @@ extension View {
     /// the active UI style. Lists/Forms must also hide their own scroll
     /// background (`scrollContentBackground(.hidden)`) for it to show.
     func appleDriftBackground(_ style: UIStyle) -> some View {
-        background(AppleDriftBackground(tint: style.tint))
+        background(AppleDriftBackground())
     }
 }
 
