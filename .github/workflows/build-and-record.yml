@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -26,7 +26,11 @@ jobs:
       - name: Select Xcode 26
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: '26.6'
+      - name: Verify toolchain
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i iphoneos
       - name: Install XcodeGen
         run: brew install xcodegen
 
