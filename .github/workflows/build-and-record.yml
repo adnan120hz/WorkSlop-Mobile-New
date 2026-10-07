@@ -52,6 +52,19 @@ jobs:
           ls -la "$RUNNER_TEMP/tour.mp4"
           if [ "$TEST_RC" != "0" ]; then echo "UI tour test failed (rc=$TEST_RC)"; exit 1; fi
 
+      - name: Build device IPA (unsigned, for sideload testing)
+        run: |
+          xcodebuild build \
+            -project WorkSlop.xcodeproj \
+            -scheme WorkSlop \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/device-build" \
+            CODE_SIGNING_ALLOWED=NO
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$RUNNER_TEMP/device-build/Build/Products/Debug-iphoneos/WorkSlop.app" "$RUNNER_TEMP/Payload/"
+          (cd "$RUNNER_TEMP" && zip -qry WorkSlop-unsigned.ipa Payload)
+          ls -la "$RUNNER_TEMP/WorkSlop-unsigned.ipa"
+
       - name: Upload recording
         if: always()
         uses: actions/upload-artifact@v4
@@ -61,4 +74,5 @@ jobs:
             ${{ runner.temp }}/tour.mp4
             ${{ runner.temp }}/smoke-launch.png
             ${{ runner.temp }}/test-log.txt
+            ${{ runner.temp }}/WorkSlop-unsigned.ipa
           if-no-files-found: warn

@@ -12,31 +12,34 @@ struct FeatureRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(feature.title)
-                        .font(.body.weight(.medium))
-                    Text(feature.subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(feature.title)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(feature.subtitle)
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 6) {
+                    StatusChip(text: feature.route.rawValue)
+                    if let chip = availability.chipText {
+                        StatusChip(text: chip, warn: true)
+                    }
                 }
-                Spacer()
-                Toggle("", isOn: Binding(
-                    get: { selection.isOn(feature.id) },
-                    set: { selection.set(feature.id, $0) }))
-                    .labelsHidden()
-                    .disabled(!availability.isEnabled)
-                    .accessibilityIdentifier("toggle-\(feature.id)")
+                .padding(.top, 2)
             }
-            HStack(spacing: 6) {
-                StatusChip(text: feature.route.rawValue)
-                if let chip = availability.chipText {
-                    StatusChip(text: chip, warn: true)
-                }
-            }
+            Spacer(minLength: 8)
+            Toggle("", isOn: Binding(
+                get: { selection.isOn(feature.id) },
+                set: { selection.set(feature.id, $0) }))
+                .labelsHidden()
+                .disabled(!availability.isEnabled)
+                .accessibilityIdentifier("toggle-\(feature.id)")
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
         .opacity(availability.isEnabled ? 1 : 0.6)
     }
 }
