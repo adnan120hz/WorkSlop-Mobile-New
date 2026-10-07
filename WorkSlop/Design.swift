@@ -32,21 +32,13 @@ enum UIStyle: String, CaseIterable {
         }
     }
 
-    var tileFill: Color {
-        switch self {
-        case .workslop: return Brand.blue
-        case .nugget: return Color(red: 0.16, green: 0.16, blue: 0.19)
-        case .modern: return Color(red: 0.35, green: 0.30, blue: 0.92)
-        }
-    }
-
     /// The three UIs have different layouts, not just colors:
     /// main (blue) = drifting-Apple backdrop + big cards;
     /// Nugget (black/gray) = plain dark-gray backdrop, compact rows;
     /// Nugget Modern (purple) = drift backdrop, tile grid.
     var showsDrift: Bool { self != .nugget }
 
-    var tabIcons: (home: String, lg: String, tweaks: String, settings: String) {
+    var tabIcons: (home: String, lg: String, pages: String, settings: String) {
         switch self {
         case .workslop:
             return ("house.fill", "square.stack.3d.up.fill",
@@ -81,15 +73,27 @@ struct BrandTile: View {
             .scaledToFill()
             .frame(width: size, height: size)
             .clipShape(RoundedRectangle(
-                cornerRadius: Brand.tileCorner * style.tileCornerScale * size / 54))
+                cornerRadius: Brand.tileCorner * style.tileCornerScale * size / 54,
+                style: .continuous))
     }
 }
 
 /// Drifting Apple-logo backdrop, mirroring the desktop v4 UI's Sky
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
+/// App appearance choice on Home for iOS 26/27: the app can run with
+/// the Liquid Glass look, or flat ("No Liquid Glass" = plain system
+/// surfaces). When the glass look is off, backgrounds render flat and
+/// the UI-style choice in Settings is blocked.
+enum AppAppearance {
+    static var glassUI: Bool {
+        UserDefaults.standard.object(forKey: "glassUI") as? Bool ?? true
+    }
+}
+
 struct AppleDriftBackground: View {
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("glassUI") private var glassUI = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
 
@@ -114,6 +118,14 @@ struct AppleDriftBackground: View {
     ]
 
     var body: some View {
+        if !glassUI {
+            Color(UIColor.systemBackground).ignoresSafeArea()
+        } else {
+            glassBody
+        }
+    }
+
+    private var glassBody: some View {
         GeometryReader { geo in
             ZStack {
                 if style.showsDrift {
@@ -149,15 +161,6 @@ struct AppleDriftBackground: View {
             .ignoresSafeArea()
         }
         .onAppear { drift = true }
-    }
-}
-
-extension View {
-    /// Puts the drifting-Apple backdrop behind a tab root, tinted with
-    /// the active UI style. Lists/Forms must also hide their own scroll
-    /// background (`scrollContentBackground(.hidden)`) for it to show.
-    func appleDriftBackground(_ style: UIStyle) -> some View {
-        background(AppleDriftBackground())
     }
 }
 

@@ -105,8 +105,8 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "PRBPosterExtensionDataStore",
-                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard on device; delivered via restore, descriptors only — the database is never touched in this mode). Cap: 10 descriptors."
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard; descriptors mode only - the database is never touched in this mode). Cap: 10 descriptors. Structure version is 61 on iOS 26 (59 on older lines) and is read from the device during the targeted backup."
                 )
             ]
         ),
@@ -117,7 +117,7 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "PRBPosterExtensionDataStore",
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
                     fileTarget: "User-imported .batter template files (AppDomain-com.apple.PosterBoard on device)."
                 )
             ]
@@ -129,7 +129,7 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "PRBPosterExtensionDataStore",
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
                     fileTarget: "Video wallpaper .tendies exported from a freeze-frame image + video (loop / reverse / foreground options)."
                 )
             ]
@@ -141,8 +141,8 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "PRBPosterExtensionDataStore",
-                    fileTarget: "Reset: clears the delivered descriptors on the next apply; PosterBoard rebuilds itself. No database is restored, so this cannot corrupt the store."
+                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    fileTarget: "Reset: stages removal of the delivered descriptors; PosterBoard rebuilds itself. The database is not part of this mode."
                 )
             ]
         ),
@@ -993,6 +993,82 @@ enum PayloadSpecCatalog {
             ]
         ),
 
+        PayloadSpec(
+            featureID: "dm-rec-crashreports",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ReportCrash", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ReportCrash.Jetsam", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ReportMemoryException", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.OTACrashCopier", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.analyticsd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.wifianalyticsd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.aslmanager", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.coresymbolicationd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.crash_mover", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.crashreportcopymobile", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.DumpBasebandCrash", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.DumpPanic", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd.admin", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd.events", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd.watchdog", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd_helper", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd_reporter", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.logd_reporter.report_statistics", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.system.logger", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.hangreporter", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.hangtracerd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.spindump", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.tailspind", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.rtcreportingd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.syslogd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.signpost.signpost_reporter", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.pluginkit.pkreporter", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ProxiedCrashCopier", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ProxiedCrashCopier.ProxyingDevice", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.ReportSystemMemory", value: .bool(true)),
+            ]
+        ),
+        PayloadSpec(
+            featureID: "dm-rec-diagnostics",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.diagnosticd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.diagnosticextensionsd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.diagnosticservicesd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.diagnosticspushd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.symptomsd-diag", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.sysdiagnose", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.sysdiagnose.darwinos", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.sysdiagnose_helper", value: .bool(true)),
+            ]
+        ),
+        PayloadSpec(
+            featureID: "dm-rec-appleads",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.promotedcontentd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.adprivacyd", value: .bool(true)),
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.adservicesd", value: .bool(true)),
+            ]
+        ),
+        PayloadSpec(
+            featureID: "dm-rec-feedback",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.feedbackd", value: .bool(true)),
+            ]
+        ),
+        PayloadSpec(
+            featureID: "dm-rec-shazam",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.shazamd", value: .bool(true)),
+            ]
+        ),
+        PayloadSpec(
+            featureID: "dm-rec-settingsstats",
+            writes: [
+                PayloadWrite(domain: .databaseDomain, filePath: "/var/db/com.apple.xpc.launchd/disabled.plist", key: "com.apple.settings-statsd", value: .bool(true)),
+            ]
+        ),
+
         // Desktop: src/tweaks/status_bar/status_bar_tweak.py:75-84;
         // src/tweaks/status_bar/status_setter.py:182-195,279-281;
         // src/devicemanagement/device_manager.py:2314-2336.
@@ -1005,7 +1081,7 @@ enum PayloadSpecCatalog {
                     filePath: "/var/mobile/Library/SpringBoard/statusBarOverrides",
                     restorePath: "Library/SpringBoard/statusBarOverrides",
                     fileTarget: "Serialized StatusBarOverrideData struct (3,944 bytes), generated from the desktop StatusBar override state; not a plist and not a single fixed key/value.",
-                    condition: "Classic pre-iOS 27 branch, matching the mobile feature's iOS 18.0-<27.0 window."
+                    condition: "Classic pre-iOS 27 (iOS 26.x) branch. iOS 27 keeps carrier text only."
                 )
             ],
             note: "The desktop target and serialization size are pinned, but the mobile toggle alone does not specify the individual field values inside the struct."

@@ -105,12 +105,12 @@ enum ActivationGate {
 
     static var message: String {
         if !pairingReady && !tunnelReady {
-            return "Locked: import the pairing file and start WireGuard first."
+            return "Locked: import the pairing file and start your VPN tunnel first."
         }
         if !pairingReady {
             return "Locked: import the pairing file (.plist) in Settings first."
         }
-        return "Locked: start WireGuard (loopback tunnel) first."
+        return "Locked: start your VPN tunnel (WireGuard or a compatible loopback tunnel) first."
     }
 }
 
@@ -211,7 +211,7 @@ enum FeatureCatalog {
     /// Desktop overall support line (is_version_supported): 16.0–<27.0.
     private static let ios16to26 = IOSWindow(min: (16, 0), maxExclusive: (27, 0))
     private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: nil) // registry min only
-    private static let ios18plus = IOSWindow(min: (18, 0), maxExclusive: nil)
+    private static let ios18plus = IOSWindow(min: (16, 0), maxExclusive: nil)
     private static let ios18to26 = IOSWindow(min: (26, 0), maxExclusive: (27, 0)) // desktop classic status-bar gate is 26.x
 
     /// Draws tweak titles and the keys actually written from the desktop
@@ -320,6 +320,30 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios18plus),
 
         // --- Daemons (disabled.plist, partial restore) ---
+        Feature(id: "dm-rec-crashreports",
+                title: "Disable CrashReports",
+                subtitle: "Recommended set on desktop: ReportCrash, analyticsd, logd and related crash-reporting daemons.",
+                section: "Recommended", ios: .ios18plus),
+        Feature(id: "dm-rec-diagnostics",
+                title: "Disable Diagnostics",
+                subtitle: "Recommended set on desktop: diagnostic daemons.",
+                section: "Recommended", ios: .ios18plus),
+        Feature(id: "dm-rec-appleads",
+                title: "Disable AppleAds",
+                subtitle: "Recommended set on desktop: promoted-content and ad-privacy daemons.",
+                section: "Recommended", ios: .ios18plus),
+        Feature(id: "dm-rec-feedback",
+                title: "Disable Feedback",
+                subtitle: "Recommended set on desktop: the Feedback daemon.",
+                section: "Recommended", ios: .ios18plus),
+        Feature(id: "dm-rec-shazam",
+                title: "Disable Shazam",
+                subtitle: "Recommended set on desktop: the Shazam daemon.",
+                section: "Recommended", ios: .ios18plus),
+        Feature(id: "dm-rec-settingsstats",
+                title: "Disable SettingsStats",
+                subtitle: "Recommended set on desktop: the Settings usage-stats daemon.",
+                section: "Recommended", ios: .ios18plus),
         Feature(id: "dm-thermalmonitord", title: "Disable thermalmonitord", subtitle: "com.apple.thermalmonitord", section: "Daemons", route: .partialRestore, window: ios16to26),
         Feature(id: "dm-ota", title: "Disable OTA", subtitle: "com.apple.mobile.softwareupdated + 3 more", section: "Daemons", route: .partialRestore, window: ios16to26),
         Feature(id: "dm-usagetrackingagent", title: "Disable UsageTrackingAgent", subtitle: "com.apple.UsageTrackingAgent", section: "Daemons", route: .partialRestore, window: ios16to26),

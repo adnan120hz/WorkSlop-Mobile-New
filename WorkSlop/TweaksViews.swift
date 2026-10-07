@@ -123,7 +123,7 @@ struct FeatureRow: View {
                 }
                 .padding(10)
                 .background(Color.white.opacity(0.42))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {

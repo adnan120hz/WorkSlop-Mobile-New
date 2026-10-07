@@ -1,7 +1,7 @@
 import XCTest
 
-/// Scripted UI tour used by CI to produce the screen recording the
-/// maintainer reviews: Home, Liquid Glass (scroll), Tweaks (scroll),
+/// Scripted UI tour used by CI (manual proof shots only) to capture
+/// screenshots the maintainer reviews: Home, Liquid Glass (scroll),
 /// Settings (incl. the 3-UI picker), back Home. It only navigates and
 /// stages nothing — it never applies anything.
 final class TourUITests: XCTestCase {
@@ -25,7 +25,7 @@ final class TourUITests: XCTestCase {
         sleep(1)
         app.swipeDown()
 
-        app.tabBars.buttons["Tweaks"].tap()
+        app.tabBars.buttons["Liquid Glass"].tap()
         sleep(1)
         app.swipeUp()
         sleep(1)
@@ -35,7 +35,7 @@ final class TourUITests: XCTestCase {
         app.tabBars.buttons["Settings"].tap()
         sleep(1)
         // The 3-UI picker really re-themes the app; pick "Nugget" so the
-        // change of tint is visible in the recording.
+        // change of tint is visible in the screenshot.
         let picker = app.buttons["ui-style-picker"]
         if picker.waitForExistence(timeout: 3) {
             picker.tap()

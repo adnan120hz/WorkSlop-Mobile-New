@@ -29,9 +29,13 @@ struct BuiltPayload {
 ///   closed, never invent a base.
 ///
 /// Building files locally is real; sending them to the system is the
-/// restore engine's job, which is not connected yet (see ApplyBar).
+/// restore engine's job, which is not connected yet.
 enum PayloadBuilder {
     static func build(staged: Set<String>) -> BuiltPayload {
+        build(staged: staged, iconEntries: CustomIconStore.load())
+    }
+
+    static func build(staged: Set<String>, iconEntries: [CustomIconEntry]) -> BuiltPayload {
         let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("PayloadPreview", isDirectory: true)
         try? FileManager.default.removeItem(at: dir)
@@ -43,8 +47,18 @@ enum PayloadBuilder {
         for spec in PayloadSpecCatalog.all where staged.contains(spec.featureID) {
             for write in spec.writes {
                 if let target = write.fileTarget {
-                    warnings.append("\(spec.featureID): targets \(target) — depends on a desktop page setting, toggle alone has no fixed payload.")
+                    warnings.append("\(spec.featureID): targets \(target) - depends on a desktop page setting, toggle alone has no fixed payload.")
                     continue
+                }
+                if write.restorePath.contains("<") {
+                    // Parameterized per-entry target (e.g. Custom
+                    // Icons WebClip folders): real paths come from
+                    // the dedicated blocks below - never write a
+                    // literal placeholder path.
+                    continue
+                }
+                if let condition = write.condition {
+                    warnings.append("\(spec.featureID): \(write.key ?? "write") is conditional - \(condition) Preview here starts from an empty base only.")
                 }
                 guard let key = write.key, let value = write.value else { continue }
                 switch value {
@@ -54,7 +68,7 @@ enum PayloadBuilder {
                 default:
                     break
                 }
-                let groupKey = write.restorePath
+                let groupKey = write.domain.rawValue + "|" + write.restorePath
                 var entry = grouped[groupKey] ?? (write.domain.rawValue, [:], write)
                 entry.values[key] = plistValue(value)
                 grouped[groupKey] = entry
@@ -62,9 +76,70 @@ enum PayloadBuilder {
         }
 
         var files: [BuiltFile] = []
-        for (path, entry) in grouped.sorted(by: { $0.key < $1.key }) {
+
+        // Custom Icons delivery: one WebClip folder per complete
+        // entry (PNG image + app name + bundle ID all required).
+        if staged.contains("custom-icons") {
+            let complete = iconEntries.filter {
+                !$0.appName.isEmpty && !$0.bundleID.isEmpty && $0.imageData != nil
+            }
+            if complete.isEmpty {
+                warnings.append("custom-icons: no complete icon entries (image, name and bundle ID are all required) - nothing staged.")
+            }
+            for entry in complete {
+                let safeName = entry.appName
+                    .replacingOccurrences(of: "/", with: "-")
+                    .replacingOccurrences(of: ",", with: "-")
+                    .replacingOccurrences(of: ":", with: "-")
+                let folder = "Library/WebClips/Cowabunga_\(entry.bundleID),\(safeName).webclip"
+                // Cowabunga makeInfoPlist, verbatim (icon_themes_tweak.py:39-57).
+                let plist: [String: Any] = [
+                    "ApplicationBundleIdentifier": entry.bundleID,
+                    "ApplicationBundleVersion": 1,
+                    "ClassicMode": false,
+                    "ConfigurationIsManaged": false,
+                    "ContentMode": "UIWebClipContentModeRecommended",
+                    "FullScreen": true,
+                    "IconIsPrecomposed": false,
+                    "IconIsScreenShotBased": false,
+                    "IgnoreManifestScope": false,
+                    "IsAppClip": false,
+                    "Orientations": 0,
+                    "ScenelessBackgroundLaunch": false,
+                    "Title": entry.appName,
+                    "WebClipStatusBarStyle": "UIWebClipStatusBarStyleDefault",
+                    "RemovalDisallowed": false,
+                ]
+                if let plistData = try? PropertyListSerialization.data(
+                    fromPropertyList: plist, format: .xml, options: 0) {
+                    let url = dir.appendingPathComponent(
+                        folder.replacingOccurrences(of: "/", with: "_") + "_Info.plist")
+                    try? plistData.write(to: url, options: .atomic)
+                    files.append(BuiltFile(
+                        domain: "HomeDomain", restorePath: folder + "/Info.plist",
+                        keys: Array(plist.keys).sorted(), url: url))
+                }
+                if let png = entry.imageData {
+                    let url = dir.appendingPathComponent(
+                        folder.replacingOccurrences(of: "/", with: "_") + "_icon.png")
+                    try? png.write(to: url, options: .atomic)
+                    files.append(BuiltFile(
+                        domain: "HomeDomain", restorePath: folder + "/icon.png",
+                        keys: ["icon.png (\(png.count) bytes)"], url: url))
+                }
+            }
+            for entry in iconEntries where entry.imageData == nil || entry.appName.isEmpty || entry.bundleID.isEmpty {
+                warnings.append("custom-icons: skipped an incomplete entry (image, name and bundle ID are all required).")
+            }
+        }
+
+        for (groupKey, entry) in grouped.sorted(by: { $0.key < $1.key }) {
+            let path = String(groupKey.drop(while: { $0 != "|" }).dropFirst())
             guard let data = try? PropertyListSerialization.data(
-                fromPropertyList: entry.values, format: .xml, options: 0) else { continue }
+                fromPropertyList: entry.values, format: .xml, options: 0) else {
+                warnings.append("\(path): could not serialize - skipped.")
+                continue
+            }
             let safeName = path.replacingOccurrences(of: "/", with: "_")
             let url = dir.appendingPathComponent(safeName)
             do {

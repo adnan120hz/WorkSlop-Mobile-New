@@ -26,7 +26,7 @@ enum LockdownProbe {
 
         var summary: String {
             guard let addr = tunnelAddress else {
-                return "No VPN tunnel address on this device — start WireGuard first."
+                return "No VPN tunnel address on this device - start your VPN tunnel (WireGuard or compatible) first."
             }
             if lockdownReachable {
                 return "Lockdown reachable at \(addr):62078 (\(lockdownType ?? "lockdownd")). Pairing session (TLS) is the next engine step."

@@ -11,6 +11,8 @@ import PhotosUI
 struct StatusBarView: View {
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
     @AppStorage("sb-on") private var masterOn = false
+    @AppStorage("sb-fullsignal") private var fullSignal = false
+    @AppStorage("sb-silly") private var sillyMode = false
     @AppStorage("sb-time") private var timeText = ""
     @AppStorage("sb-date") private var dateText = ""
     @AppStorage("sb-crumb") private var crumbText = ""
@@ -68,6 +70,10 @@ struct StatusBarView: View {
                     Section {
                         FeatureRow(feature: feature)
                         Toggle("Enable Status Bar Modifications", isOn: $masterOn)
+                        Toggle("Full Signal Bars (No SIM Visual)", isOn: $fullSignal)
+                            .disabled(!ActivationGate.unlocked)
+                        Toggle("Silly Mode", isOn: $sillyMode)
+                            .disabled(!ActivationGate.unlocked)
                             .accessibilityIdentifier("sb-enable")
                     } header: {
                         Text("Master")
@@ -140,7 +146,16 @@ struct DaemonsView: View {
                     } header: {
                         Text("Daemons")
                     } footer: {
-                        Text("Daemon toggles write the disabled-daemons list the desktop manages. A disabled daemon stays off until the toggle is removed and the device restarts.")
+                        Text("Daemon toggles stage the same disabled-daemons list the desktop manages; what lands on the device depends on the restore engine, which is not verified on iOS 26.6.1 yet.")
+                    }
+                    Section {
+                        ForEach(FeatureCatalog.features(in: "Recommended")) { feature in
+                            FeatureRow(feature: feature)
+                        }
+                    } header: {
+                        Text("Recommended set")
+                    } footer: {
+                        Text("The desktop one-tap Recommended analytics set, as individual switches.")
                     }
                     Section {
                         ApplySection()
@@ -243,9 +258,9 @@ struct CustomIconsView: View {
                                     Image(uiImage: img)
                                         .resizable()
                                         .frame(width: 44, height: 44)
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                                 } else {
-                                    RoundedRectangle(cornerRadius: 10)
+                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
                                         .fill(Color.secondary.opacity(0.25))
                                         .frame(width: 44, height: 44)
                                         .overlay(Image(systemName: "app").foregroundStyle(.secondary))
@@ -278,9 +293,22 @@ struct CustomIconsView: View {
                         Text("Pick an image, fill the app name and its bundle ID (for example com.apple.mobilesafari). Staged icons are written as Home Screen web clips by the same restore payload as the desktop icon themes.")
                     }
                     Section("Icon packs") {
-                        Text("Cowabunga icon packs can be browsed on the web; download a pack there, then add its images above one by one with the matching bundle IDs.")
+                        Link(destination: URL(string: "https://github.com/leminlimez/Cowabunga")!) {
+                            Label("Cowabunga bookmark icons (web)", systemImage: "safari")
+                        }
+                        .accessibilityIdentifier("icons-cowabunga")
+                        Text("Install bookmark icons from the Cowabunga website, or add your own below: PNG image, app name and bundle ID are all required.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                    }
+                    Section {
+                        ForEach(FeatureCatalog.features(in: "Custom Icons")) { feature in
+                            FeatureRow(feature: feature)
+                        }
+                    } header: {
+                        Text("Delivery")
+                    } footer: {
+                        Text("With this on and at least one complete icon below, the staging payload built on disk gains one Cowabunga-style .webclip folder per app (Info.plist + icon.png). Nothing is on the Home Screen until the restore engine delivers it.")
                     }
                     Section {
                         ApplySection()
@@ -317,11 +345,14 @@ struct CustomIconsView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 120)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         }
                         PhotosPicker(selection: $picked, matching: .images) {
-                            Label("Import image", systemImage: "photo")
+                            Label("Import image (saved as PNG)", systemImage: "photo")
                         }
+                        Text("App name and bundle ID are required before this icon can be staged.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .navigationTitle("Icon")
@@ -333,8 +364,10 @@ struct CustomIconsView: View {
                 }
                 .onChange(of: picked) { _, item in
                     Task {
-                        if let data = try? await item?.loadTransferable(type: Data.self) {
-                            entries[i].imageData = data
+                        if let raw = try? await item?.loadTransferable(type: Data.self),
+                           let image = UIImage(data: raw),
+                           let png = image.pngData() {
+                            entries[i].imageData = png
                             CustomIconStore.save(entries)
                         }
                     }
@@ -346,7 +379,130 @@ struct CustomIconsView: View {
 
 // MARK: - PosterBoard
 
+/// Import-first, like the desktop page: the user brings .tendies (or
+/// .batter template) files, and only then do the PosterBoard modes
+/// have anything to deliver. There is deliberately NO Apply button on
+/// this page - imported files join the staged set and are delivered
+/// by the engine from the Apply sections on the tweak pages.
 struct PosterBoardView: View {
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @State private var importing = false
+    @State private var note: String?
+    @State private var files: [String] = TendiesStore.list()
+
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppleDriftBackground()
+                List {
+                    Section {
+                        LockBanner()
+                    }
+                    Section {
+                        Button("Import files (.tendies / .batter)") { importing = true }
+                            .accessibilityIdentifier("pb-import")
+                        if files.isEmpty {
+                            Text("No files imported yet. PosterBoard has nothing to deliver until you import at least one .tendies file.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(files, id: \.self) { name in
+                                Label(name, systemImage: "doc")
+                                    .font(.footnote)
+                            }
+                            .onDelete { offsets in
+                                TendiesStore.delete(at: offsets, from: files)
+                                files = TendiesStore.list()
+                            }
+                        }
+                        if let note {
+                            Text(note)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    } header: {
+                        Text("Your PosterBoard files")
+                    } footer: {
+                        Text("Up to 10 descriptor files ride one apply (desktop cap). Imported files are copied into the app container.")
+                    }
+                    Section {
+                        ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
+                            FeatureRow(feature: feature)
+                        }
+                    } header: {
+                        Text("Modes")
+                    } footer: {
+                        Text("Tendies / Templates / Video ride the desktop PosterBoard route: targeted container backup -> modify -> partial restore. Delivery happens from the Apply sections on the tweak pages once the engine runs - never a direct apply here.")
+                    }
+                }
+                .scrollContentBackground(.hidden)
+                .modifier(ThemedListStyle(style: style))
+            }
+            .navigationTitle("PosterBoard")
+            .fileImporter(isPresented: $importing, allowedContentTypes: [.data],
+                          allowsMultipleSelection: true) { result in
+                switch result {
+                case .success(let urls):
+                    var imported = 0
+                    for url in urls {
+                        let ext = url.pathExtension.lowercased()
+                        guard ext == "tendies" || ext == "batter" else { continue }
+                        let scoped = url.startAccessingSecurityScopedResource()
+                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                        if TendiesStore.save(url: url) { imported += 1 }
+                    }
+                    files = TendiesStore.list()
+                    note = imported > 0
+                        ? "Imported \(imported) file(s). They are staged for the next engine apply."
+                        : "Nothing imported - only .tendies and .batter files are accepted."
+                case .failure:
+                    note = "Import cancelled."
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Tendies store (PosterBoard imports)
+
+enum TendiesStore {
+    static var dir: URL {
+        let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Tendies", isDirectory: true)
+        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+        return d
+    }
+
+    static func list() -> [String] {
+        (try? FileManager.default.contentsOfDirectory(atPath: dir.path))?.sorted() ?? []
+    }
+
+    static func save(url: URL) -> Bool {
+        guard list().count < 10 else { return false }
+        let dest = dir.appendingPathComponent(url.lastPathComponent)
+        do {
+            if FileManager.default.fileExists(atPath: dest.path) {
+                try FileManager.default.removeItem(at: dest)
+            }
+            try FileManager.default.copyItem(at: url, to: dest)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    static func delete(at offsets: IndexSet, from files: [String]) {
+        for i in offsets {
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent(files[i]))
+        }
+    }
+}
+
+// MARK: - SpringBoard tweaks
+
+struct SpringBoardView: View {
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
@@ -360,13 +516,9 @@ struct PosterBoardView: View {
                         LockBanner()
                     }
                     Section {
-                        ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
+                        ForEach(FeatureCatalog.features(in: "SpringBoard")) { feature in
                             FeatureRow(feature: feature)
                         }
-                    } header: {
-                        Text("PosterBoard")
-                    } footer: {
-                        Text("Lock Screen poster (PosterBoard) templates and collections, delivered like the desktop PosterBoard page.")
                     }
                     Section {
                         ApplySection()
@@ -375,19 +527,7 @@ struct PosterBoardView: View {
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
             }
-            .navigationTitle("PosterBoard")
-        }
-    }
-}
-
-/// Shown at the top of tweak lists while the pairing-file + VPN
-/// gate is closed (toggles stay unusable until both are in place).
-struct LockBanner: View {
-    var body: some View {
-        if !ActivationGate.unlocked {
-            Text(ActivationGate.message)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+            .navigationTitle("SpringBoard")
         }
     }
 }
@@ -406,7 +546,7 @@ struct ApplySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Apply puts the staged tweaks on this device over the loopback WireGuard tunnel to this same phone. The full payload is verified first; if any check fails, nothing is sent.")
+            Text("Apply builds the real payload from your staged tweaks on this phone. Delivery to the system runs over the loopback VPN tunnel with your pairing file - and only once the on-device restore engine passes its checks; if any check fails, nothing is sent.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             Button {
@@ -474,7 +614,7 @@ struct ApplySection: View {
                             .foregroundStyle(DeviceStatus.vpnTunnelActive() ? Color.green : Color.red)
                         Label("Lockdownd session with pairing file (TLS)", systemImage: "clock.badge.questionmark")
                             .foregroundStyle(.secondary)
-                        Text("The apply runs over this same phone: pairing file -> tunnel -> lockdownd on port 62078. The Home Refresh probes the first steps for real.")
+                        Text("Delivery is designed to run over this same phone: pairing file -> tunnel -> lockdownd on port 62078. The Home Refresh probes the first steps for real; the TLS session and restore are not built yet.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

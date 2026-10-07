@@ -44,7 +44,7 @@ struct IntroView: View {
                     title: "Before you apply",
                     lines: [
                         "Import the pairing file (.plist from idevicepair) in Settings.",
-                        "On-device applies run over a loopback WireGuard tunnel to this same phone.",
+                        "Applies are designed to run over a loopback VPN tunnel to this same phone.",
                         "The app cannot reboot your iPhone — after an apply you restart manually.",
                         "Cancel really stops: a cancelled restore never keeps running in the background.",
                         "The restore engine is not verified on iOS 26.6.1 yet, so Apply builds the payload and reports the engine status honestly instead of faking a send.",

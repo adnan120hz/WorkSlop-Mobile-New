@@ -28,6 +28,10 @@ struct ContentView: View {
                 .tabItem { Label("Apple Internal", systemImage: "wrench.and.screwdriver") }
                 .accessibilityIdentifier("tab-apple-internal")
 
+            SpringBoardView()
+                .tabItem { Label("SpringBoard", systemImage: "square.grid.2x2") }
+                .accessibilityIdentifier("tab-springboard")
+
             CustomIconsView()
                 .tabItem { Label("Custom Icons", systemImage: "app.badge") }
                 .accessibilityIdentifier("tab-custom-icons")
@@ -47,6 +51,7 @@ struct ContentView: View {
 }
 
 struct HomeView: View {
+    @AppStorage("glassUI") private var glassUI = true
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
@@ -96,11 +101,12 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 12)
                 .background(Color(UIColor.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
                 .font(.footnote)
+                menuLinks
                 NavigationLink {
                     LiquidGlassView()
                 } label: {
@@ -111,7 +117,7 @@ struct HomeView: View {
                     }
                     .padding(12)
                     .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
@@ -157,7 +163,7 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color.white.opacity(0.42))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -167,6 +173,8 @@ struct HomeView: View {
                     modernTile("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
                     modernTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
+                appearanceChoice
+                menuLinks
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
@@ -189,10 +197,35 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
         .background(Color.white.opacity(0.42))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     // MARK: - WorkSlop main layout (blue): tile grid, left header
+
+
+    /// iOS 26/27 only: the "Liquid Glass UI" vs "No Liquid Glass"
+    /// app-appearance choice that sits on Home. Picking "No Liquid
+    /// Glass" flattens the app and blocks the style choice below it.
+    @ViewBuilder
+    private var appearanceChoice: some View {
+        if DeviceInfo.iosVersion >= (26, 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("App appearance (iOS 26)")
+                    .font(.subheadline.weight(.semibold))
+                Picker("App appearance", selection: $glassUI) {
+                    Text("Liquid Glass UI").tag(true)
+                    Text("No Liquid Glass").tag(false)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("appearance-picker")
+                if !glassUI {
+                    Text("Flat look on: the glass backgrounds are off and the UI style choice in Settings is blocked.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
 
     private var workslopHome: some View {
         ScrollView {
@@ -222,7 +255,7 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -232,6 +265,8 @@ struct HomeView: View {
                     mainTile("key.fill", "Pairing file", pairingImported ? "Imported" : "-")
                     mainTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
+                appearanceChoice
+                menuLinks
                 Button("Refresh device status") {
                     refreshStatus()
                 }
@@ -242,6 +277,47 @@ struct HomeView: View {
             }
             .padding()
         }
+    }
+
+
+    /// Menu shortcuts that also live in the bottom tabs — visible
+    /// right on Home, as requested.
+    private var menuLinks: some View {
+        VStack(spacing: 10) {
+            homeMenuLink("app.badge", "Custom Icons", "Bookmark icons from Cowabunga or your own PNG") {
+                CustomIconsView()
+            }
+            homeMenuLink("photo.on.rectangle", "PosterBoard", "Import .tendies first - no direct apply here") {
+                PosterBoardView()
+            }
+        }
+    }
+
+    private func homeMenuLink<Destination: View>(
+        _ icon: String, _ title: String, _ subtitle: String,
+        @ViewBuilder destination: () -> Destination
+    ) -> some View {
+        NavigationLink {
+            destination()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .frame(width: 26)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.subheadline.weight(.semibold))
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .background(Color(UIColor.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.primary)
     }
 
     /// Refresh device facts and probe the pairing-file engine route:
@@ -265,7 +341,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
         .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
