@@ -8,6 +8,9 @@ import Foundation
 enum DeliveryRoute: String {
     case partialRestore = "Partial restore"
     case fullBackup = "Full backup → modify → restore"
+    /// PosterBoard on desktop: pull the PosterBoard container with a
+    /// targeted backup, modify the files, deliver by partial restore.
+    case targetedBackupModify = "Targeted backup → modify → partial restore"
 }
 
 /// iOS version window a feature supports. A feature is locked ONLY when
