@@ -9,19 +9,19 @@ struct ContentView: View {
     var body: some View {
         TabView {
             HomeView()
-                .tabItem { Label("Home", systemImage: "house.fill") }
+                .tabItem { Label("Home", systemImage: style.tabIcons.home) }
                 .accessibilityIdentifier("tab-home")
 
             LiquidGlassView()
-                .tabItem { Label("Liquid Glass", systemImage: "square.stack.3d.up.fill") }
+                .tabItem { Label("Liquid Glass", systemImage: style.tabIcons.lg) }
                 .accessibilityIdentifier("tab-liquid-glass")
 
             TweaksView()
-                .tabItem { Label("Tweaks", systemImage: "slider.horizontal.3") }
+                .tabItem { Label("Tweaks", systemImage: style.tabIcons.tweaks) }
                 .accessibilityIdentifier("tab-tweaks")
 
             SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                .tabItem { Label("Settings", systemImage: style.tabIcons.settings) }
                 .accessibilityIdentifier("tab-settings")
         }
         .tint(style.tint)
@@ -33,11 +33,150 @@ struct HomeView: View {
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 AppleDriftBackground()
+                switch style {
+                case .nugget:
+                    nuggetHome
+                case .modern:
+                    modernHome
+                case .workslop:
+                    workslopHome
+                }
+            }
+            .navigationTitle("Home")
+            .onAppear { pairingImported = PairingStore.isImported }
+        }
+    }
+
+    // MARK: - Nugget layout: compact gray rows, no cards/drift
+
+    private var nuggetHome: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    BrandTile(size: 40)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("WorkSlop").font(.headline)
+                        Text("v14.0 • Mobile").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                VStack(spacing: 0) {
+                    nuggetRow("iphone", "Device", "\(DeviceStatus.model) • iOS \(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
+                    Divider()
+                    nuggetRow("network", "VPN tunnel", vpnDetected ? "Detected" : "Not detected")
+                    Divider()
+                    nuggetRow("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
+                    Divider()
+                    nuggetRow("checklist", "Staged tweaks", "\(selection.staged.count) selected")
+                }
+                .padding(.horizontal, 12)
+                .background(Color.white.opacity(0.75))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                Button("Refresh device status") {
+                    vpnDetected = DeviceStatus.vpnTunnelActive()
+                }
+                .font(.footnote)
+                NavigationLink {
+                    LiquidGlassView()
+                } label: {
+                    HStack {
+                        Label("Liquid Glass (Latest)", systemImage: "square.stack.3d.up")
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                    .padding(12)
+                    .background(Color.white.opacity(0.75))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .accessibilityIdentifier("home-lg-latest")
+                Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+    }
+
+    private func nuggetRow(_ icon: String, _ title: String, _ value: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon).frame(width: 22)
+            Text(title)
+            Spacer()
+            Text(value).foregroundStyle(.secondary).font(.callout)
+        }
+        .padding(.vertical, 9)
+    }
+
+    // MARK: - Nugget Modern layout: centered header + tile grid
+
+    private var modernHome: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    BrandTile(size: 68)
+                    Text("WorkSlop").font(.title2.weight(.bold))
+                    Text("v14.0 • Mobile").font(.caption).foregroundStyle(.secondary)
+                }
+                NavigationLink {
+                    LiquidGlassView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("Liquid Glass (Latest)", systemImage: "sparkles")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text("Full backup → modify → restore. Decided by an on-device test.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color.white.opacity(0.65))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                }
+                .accessibilityIdentifier("home-lg-latest")
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    modernTile("iphone", "Device",
+                               "\(DeviceStatus.model)\niOS \(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
+                    modernTile("network", "VPN tunnel", vpnDetected ? "Detected" : "Not detected")
+                    modernTile("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
+                    modernTile("checklist", "Staged", "\(selection.staged.count) selected")
+                }
+                Button("Refresh device status") {
+                    vpnDetected = DeviceStatus.vpnTunnelActive()
+                }
+                .font(.footnote)
+                Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+    }
+
+    private func modernTile(_ icon: String, _ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: icon)
+            Text(title).font(.subheadline.weight(.semibold))
+            Text(value).font(.caption).foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+        .padding(12)
+        .background(Color.white.opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    // MARK: - WorkSlop main layout: drifting sky + big cards
+
+    private var workslopHome: some View {
                 ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
@@ -145,10 +284,6 @@ struct HomeView: View {
                 }
                 .padding()
                 }
-            }
-            .navigationTitle("Home")
-            .onAppear { pairingImported = PairingStore.isImported }
-        }
     }
 }
 

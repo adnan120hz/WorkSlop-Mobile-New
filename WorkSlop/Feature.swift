@@ -174,13 +174,14 @@ enum FeatureCatalog {
             route: .fullBackup,
             window: ios26),
 
+        // Removed after the 2026-10-07 firmware audit (STRING ABSENT
+        // in iOS 26.6.1 firmware): lg-disable-swiftui, sb-airdrop-limit,
+        // in-clock-seconds, in-imessage-debug, in-appstore-debug,
+        // in-notes-debug. Keys with no home in firmware are not offered.
         // --- Liquid Glass (regular set, partial restore) ---
         Feature(id: "lg-force-fallback", title: "Force Solarium Fallback",
                 subtitle: "SolariumForceFallback", section: "Liquid Glass",
                 route: .partialRestore, window: ios26),
-        Feature(id: "lg-disable-swiftui", title: "Disable Solarium (SwiftUI)",
-                subtitle: "com.apple.SwiftUI.DisableSolarium", section: "Liquid Glass",
-                route: .partialRestore, window: ios26_0),
         Feature(id: "lg-legibility-2", title: "Glass Legibility Value 2",
                 subtitle: "UIViewGlassLegibilitySetting = 2", section: "Liquid Glass",
                 route: .partialRestore, window: ios26),
@@ -231,9 +232,6 @@ enum FeatureCatalog {
         Feature(id: "sb-watchos-pairing", title: "Allow pairing with any watchOS version",
                 subtitle: "NanoRegistry pairing flag (no plist key)", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
-        Feature(id: "sb-airdrop-limit", title: "Disable AirDrop Time Limit for Everyone Option",
-                subtitle: "OverrideTimeLimitEveryoneMode", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
         Feature(id: "sb-dont-lock-crash", title: "Disable Lock After Respring",
                 subtitle: "SBDontLockAfterCrash", section: "SpringBoard",
                 route: .partialRestore, window: ios18plus),
@@ -277,18 +275,6 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios18plus),
         Feature(id: "in-key-flicks", title: "Keyboard Key Flicks",
                 subtitle: "GesturesEnabled", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
-        Feature(id: "in-clock-seconds", title: "Disable Clock Icon Seconds Hand",
-                subtitle: "SBDisableClockIconSecondsHand", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
-        Feature(id: "in-imessage-debug", title: "iMessage Debugging",
-                subtitle: "iMessageDiagnosticsEnabled", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
-        Feature(id: "in-appstore-debug", title: "App Store Debug Gesture",
-                subtitle: "debugGestureEnabled", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
-        Feature(id: "in-notes-debug", title: "Notes Debug Mode",
-                subtitle: "DebugModeEnabled", section: "Internal Options",
                 route: .partialRestore, window: ios18plus),
 
         // --- Custom Icons (desktop Custom Icons page) ---

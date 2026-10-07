@@ -18,25 +18,45 @@ enum UIStyle: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .workslop: return "WorkSlop v4 (Main)"
+        case .workslop: return "WorkSlop (Main)"
         case .nugget: return "Nugget"
-        case .modern: return "WorkSlop 2 (Classic)"
+        case .modern: return "Nugget Modern"
         }
     }
 
     var tint: Color {
         switch self {
         case .workslop: return Brand.blue
-        case .nugget: return Color(red: 0.35, green: 0.30, blue: 0.92)
-        case .modern: return Color(red: 0.10, green: 0.10, blue: 0.12)
+        case .nugget: return Color(red: 0.16, green: 0.16, blue: 0.19)
+        case .modern: return Color(red: 0.35, green: 0.30, blue: 0.92)
         }
     }
 
     var tileFill: Color {
         switch self {
         case .workslop: return Brand.blue
-        case .nugget: return Color(red: 0.35, green: 0.30, blue: 0.92)
-        case .modern: return Color(red: 0.10, green: 0.10, blue: 0.12)
+        case .nugget: return Color(red: 0.16, green: 0.16, blue: 0.19)
+        case .modern: return Color(red: 0.35, green: 0.30, blue: 0.92)
+        }
+    }
+
+    /// The three UIs have different layouts, not just colors:
+    /// main (blue) = drifting-Apple backdrop + big cards;
+    /// Nugget (black/gray) = plain dark-gray backdrop, compact rows;
+    /// Nugget Modern (purple) = drift backdrop, tile grid.
+    var showsDrift: Bool { self != .nugget }
+
+    var tabIcons: (home: String, lg: String, tweaks: String, settings: String) {
+        switch self {
+        case .workslop:
+            return ("house.fill", "square.stack.3d.up.fill",
+                    "slider.horizontal.3", "gearshape.fill")
+        case .nugget:
+            return ("house", "square.stack.3d.up",
+                    "wrench.and.screwdriver", "gearshape")
+        case .modern:
+            return ("square.grid.2x2.fill", "sparkles",
+                    "slider.horizontal.below.rectangle", "gearshape.2.fill")
         }
     }
 
@@ -73,9 +93,8 @@ struct AppleDriftBackground: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
 
-    private var tint: Color {
-        (UIStyle(rawValue: uiStyleRaw) ?? .workslop).tint
-    }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var tint: Color { style.tint }
 
     private struct Mote {
         let x, y, size, delay, duration, travel, spin: Double
@@ -97,9 +116,16 @@ struct AppleDriftBackground: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                LinearGradient(
-                    colors: [tint.opacity(0.16), tint.opacity(0.05)],
-                    startPoint: .top, endPoint: .bottom)
+                if style.showsDrift {
+                    LinearGradient(
+                        colors: [tint.opacity(0.16), tint.opacity(0.05)],
+                        startPoint: .top, endPoint: .bottom)
+                } else {
+                    LinearGradient(
+                        colors: [Color(white: 0.92), Color(white: 0.85)],
+                        startPoint: .top, endPoint: .bottom)
+                }
+                if style.showsDrift {
                 ForEach(motes.indices, id: \.self) { i in
                     let m = motes[i]
                     Image(systemName: "apple.logo")
@@ -117,6 +143,7 @@ struct AppleDriftBackground: View {
                                     .repeatForever(autoreverses: true)
                                     .delay(m.delay),
                             value: drift)
+                }
                 }
             }
             .ignoresSafeArea()
