@@ -532,6 +532,18 @@ struct SpringBoardView: View {
     }
 }
 
+/// Shown at the top of tweak lists while the pairing-file + VPN
+/// gate is closed (toggles stay unusable until both are in place).
+struct LockBanner: View {
+    var body: some View {
+        if !ActivationGate.unlocked {
+            Text(ActivationGate.message)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 // MARK: - Apply + Cancel section (used on every page)
 
 /// The Apply menu: what Apply does, the Apply button, and the Cancel
