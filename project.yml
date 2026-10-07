@@ -7,6 +7,12 @@ targets:
   WorkSlop:
     type: application
     platform: iOS
+    info:
+      path: WorkSlop/Info.plist
+      properties:
+        CFBundleName: WorkSlop
+        CFBundleDisplayName: WorkSlop
+        UILaunchScreen: {}
     sources:
       - path: WorkSlop
     settings:
