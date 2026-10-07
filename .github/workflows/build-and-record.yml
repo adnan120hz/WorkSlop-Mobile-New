@@ -4,6 +4,16 @@ name: Build IPA
 # Deliberately no screenshots, no recordings, no extra outputs.
 on:
   workflow_dispatch:
+    inputs:
+      proof_shot:
+        description: 'Also make UI screenshots (artifact only, never in repo)'
+        type: boolean
+        default: false
+      proof_style:
+        description: 'UI style for the screenshots'
+        type: choice
+        options: [workslop, nugget, modern]
+        default: workslop
 
 jobs:
   build:
@@ -40,6 +50,36 @@ jobs:
           cp -R "$APP" "$IPA_DIR/Payload/"
           (cd "$IPA_DIR" && /usr/bin/zip -qry ${{ runner.temp }}/WorkSlop-unsigned.ipa Payload)
           ls -la ${{ runner.temp }}/WorkSlop-unsigned.ipa
+
+      - name: Proof screenshots (on request only)
+        if: ${{ inputs.proof_shot }}
+        run: |
+          set -euo pipefail
+          xcodebuild -project WorkSlop.xcodeproj -scheme WorkSlop \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ${{ runner.temp }}/SimDD \
+            build CODE_SIGNING_ALLOWED=NO
+          SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}' | head -1)
+          if [ -z "$SIM_ID" ]; then
+            SIM_ID=$(xcrun simctl create ProofPhone com.apple.CoreSimulator.SimDeviceType.iPhone-16 com.apple.CoreSimulator.SimRuntime.iOS-26-0)
+          fi
+          echo "Simulator: $SIM_ID"
+          xcrun simctl boot "$SIM_ID" || true
+          xcrun simctl bootstatus "$SIM_ID" -b || true
+          APP="${{ runner.temp }}/SimDD/Build/Products/Debug-iphonesimulator/WorkSlop.app"
+          xcrun simctl install "$SIM_ID" "$APP"
+          xcrun simctl launch --terminate-running-process "$SIM_ID" com.adnan120hz.workslop -DemoIOS26 -uiStyle ${{ inputs.proof_style }} || true
+          sleep 4
+          xcrun simctl io "$SIM_ID" screenshot ${{ runner.temp }}/proof-home.png
+          ls -la ${{ runner.temp }}/proof-home.png
+
+      - name: Upload proof shots
+        if: ${{ inputs.proof_shot }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProofShots
+          path: ${{ runner.temp }}/proof-home.png
+          if-no-files-found: warn
 
       - name: Upload IPA
         if: always()
