@@ -411,8 +411,8 @@ struct PosterBoardView: View {
                                     .font(.footnote)
                             }
                             .onDelete { offsets in
-                                TendiesStore.delete(at: offsets, from: files)
-                                files = TendiesStore.list()
+                                TendiesStore.delete(at: offsets, from: files, kind: "Tendies")
+                                files = TendiesStore.list(kind: "Tendies")
                             }
                         }
                         if let note {
