@@ -50,7 +50,7 @@ struct HomeView: View {
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
-    @State private var engineStatus = "Engine not probed yet — tap Refresh device status.
+    @State private var engineStatus = "Engine not probed yet - tap Refresh device status."
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
