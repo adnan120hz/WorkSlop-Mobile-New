@@ -156,7 +156,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(Color.white.opacity(0.65))
+                    .background(Color.white.opacity(0.42))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                 }
                 .accessibilityIdentifier("home-lg-latest")
@@ -188,7 +188,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
-        .background(Color.white.opacity(0.65))
+        .background(Color.white.opacity(0.42))
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 

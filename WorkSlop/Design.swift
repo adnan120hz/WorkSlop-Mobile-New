@@ -118,7 +118,7 @@ struct AppleDriftBackground: View {
             ZStack {
                 if style.showsDrift {
                     LinearGradient(
-                        colors: [tint.opacity(0.16), tint.opacity(0.05)],
+                        colors: [tint.opacity(0.12), tint.opacity(0.04)],
                         startPoint: .top, endPoint: .bottom)
                 } else {
                     LinearGradient(
