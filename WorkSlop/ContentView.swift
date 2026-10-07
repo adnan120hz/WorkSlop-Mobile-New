@@ -16,9 +16,25 @@ struct ContentView: View {
                 .tabItem { Label("Liquid Glass", systemImage: style.tabIcons.lg) }
                 .accessibilityIdentifier("tab-liquid-glass")
 
-            TweaksView()
-                .tabItem { Label("Tweaks", systemImage: style.tabIcons.tweaks) }
-                .accessibilityIdentifier("tab-tweaks")
+            StatusBarView()
+                .tabItem { Label("Status Bar", systemImage: "antenna.radiowaves.left.and.right") }
+                .accessibilityIdentifier("tab-status-bar")
+
+            DaemonsView()
+                .tabItem { Label("Daemons", systemImage: "gearshape.2") }
+                .accessibilityIdentifier("tab-daemons")
+
+            AppleInternalView()
+                .tabItem { Label("Apple Internal", systemImage: "wrench.and.screwdriver") }
+                .accessibilityIdentifier("tab-apple-internal")
+
+            CustomIconsView()
+                .tabItem { Label("Custom Icons", systemImage: "app.badge") }
+                .accessibilityIdentifier("tab-custom-icons")
+
+            PosterBoardView()
+                .tabItem { Label("PosterBoard", systemImage: "photo.on.rectangle") }
+                .accessibilityIdentifier("tab-posterboard")
 
             SettingsView()
                 .tabItem { Label("Settings", systemImage: style.tabIcons.settings) }
@@ -26,6 +42,7 @@ struct ContentView: View {
         }
         .tint(style.tint)
         .environmentObject(selection)
+        .preferredColorScheme(style == .nugget ? .dark : nil)
     }
 }
 
@@ -33,6 +50,7 @@ struct HomeView: View {
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
+    @State private var engineStatus = "Engine not probed yet — tap Refresh device status.
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
@@ -77,7 +95,7 @@ struct HomeView: View {
                     nuggetRow("checklist", "Staged tweaks", "\(selection.staged.count) selected")
                 }
                 .padding(.horizontal, 12)
-                .background(Color.white.opacity(0.75))
+                .background(Color(UIColor.secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
@@ -92,7 +110,7 @@ struct HomeView: View {
                         Image(systemName: "chevron.right").foregroundStyle(.secondary)
                     }
                     .padding(12)
-                    .background(Color.white.opacity(0.75))
+                    .background(Color(UIColor.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .accessibilityIdentifier("home-lg-latest")
@@ -144,8 +162,8 @@ struct HomeView: View {
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     modernTile("iphone", "Device",
-                               "\(DeviceStatus.model)\niOS \(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
-                    modernTile("network", "VPN tunnel", vpnDetected ? "Detected" : "Not detected")
+                               "\(DeviceStatus.modelOrDash)\niOS \(DeviceInfoEx.fullVersion)")
+                    modernTile("network", "VPN tunnel", vpnDetected ? "Detected" : "-")
                     modernTile("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
                     modernTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
@@ -174,116 +192,80 @@ struct HomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
-    // MARK: - WorkSlop main layout: drifting sky + big cards
+    // MARK: - WorkSlop main layout (blue): tile grid, left header
 
     private var workslopHome: some View {
-                ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 12) {
-                        BrandTile()
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("WorkSlop")
-                                .font(.title2.weight(.bold))
-                            Text("v14.0 • Mobile (New)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 12) {
+                    BrandTile(size: 48)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("WorkSlop")
+                            .font(.title3.weight(.bold))
+                        Text("v14.0 \u{2022} Mobile")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-
-                    // This device + VPN tunnel state. The on-device
-                    // route runs over a loopback WireGuard tunnel, so
-                    // the Home screen says plainly whether one is up.
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("Device", systemImage: "iphone")
-                                .font(.headline)
-                            LabeledContent("Model", value: DeviceStatus.model)
-                            LabeledContent("iOS", value: "\(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
-                            HStack {
-                                Text("VPN tunnel")
-                                Spacer()
-                                StatusChip(
-                                    text: vpnDetected ? "Detected" : "Not detected",
-                                    warn: !vpnDetected)
-                            }
-                            Text("On-device tweaks run through this device over a loopback WireGuard tunnel. Any active VPN tunnel counts here — the app cannot see which VPN app owns it.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Button("Refresh") {
-                                vpnDetected = DeviceStatus.vpnTunnelActive()
-                            }
+                }
+                NavigationLink {
+                    LiquidGlassView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("Liquid Glass (Latest)", systemImage: "square.stack.3d.up.fill")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text("Full backup \u{2192} modify \u{2192} restore. Decided by an on-device test.")
                             .font(.footnote)
-                            .accessibilityIdentifier("refresh-device")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.leading)
                     }
-
-                    // Pairing status: the pairing record is the .plist
-                    // from idevicepair, imported once in Settings.
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("Pairing file", systemImage: "key.fill")
-                                .font(.headline)
-                            Text(pairingImported
-                                 ? "A pairing file (.plist from idevicepair) is imported."
-                                 : "No pairing file yet. Import the .plist from idevicepair pair in Settings.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            StatusChip(
-                                text: pairingImported ? "Imported" : "Not imported",
-                                warn: !pairingImported)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-
-                    // Staged selections summary. Staging is selection
-                    // only — the Apply buttons on the tweak tabs say
-                    // plainly that the engine is not connected yet.
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("Staged tweaks", systemImage: "checklist")
-                                .font(.headline)
-                            Text(selection.staged.isEmpty
-                                 ? "No tweaks selected. Flip toggles on the Liquid Glass / Tweaks tabs — only tweaks this iOS cannot run are locked."
-                                 : "\(selection.staged.count) tweak(s) selected. The Apply buttons live on the Liquid Glass and Tweaks tabs.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-
-                    // Liquid Glass (Terbaru) menu, as on the desktop Home.
-                    NavigationLink {
-                        LiquidGlassView()
-                    } label: {
-                        GroupBox {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Label("Liquid Glass (Latest)", systemImage: "square.stack.3d.up.fill")
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
-                                Text("The latest route: a payload read from the iOS 26.6.1 firmware, sent by full backup → modify → restore. The on-screen effect is decided by an on-device test.")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                    .accessibilityIdentifier("home-lg-latest")
-
-                    GroupBox {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Beta testers")
-                                .font(.headline)
-                            Text("Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
-                .padding()
+                .accessibilityIdentifier("home-lg-latest")
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    mainTile("iphone", "Device",
+                             "\(DeviceStatus.modelOrDash)\niOS \(DeviceInfoEx.fullVersion)")
+                    mainTile("network", "VPN tunnel", vpnDetected ? "Detected" : "-")
+                    mainTile("key.fill", "Pairing file", pairingImported ? "Imported" : "-")
+                    mainTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
+                Button("Refresh device status") {
+                    refreshStatus()
+                }
+                .font(.footnote)
+                Text(engineStatus)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+    }
+
+    /// Refresh device facts and probe the pairing-file engine route:
+    /// tunnel address -> lockdownd over the loopback tunnel.
+    private func refreshStatus() {
+        vpnDetected = DeviceStatus.vpnTunnelActive()
+        pairingImported = PairingStore.isImported
+        engineStatus = "Probing lockdownd..."
+        LockdownProbe.probe { result in
+            DispatchQueue.main.async { engineStatus = result.summary }
+        }
+    }
+
+    private func mainTile(_ icon: String, _ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: icon)
+            Text(title).font(.subheadline.weight(.semibold))
+            Text(value).font(.caption).foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+        .padding(12)
+        .background(Color(UIColor.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -303,7 +285,7 @@ struct SettingsView: View {
                 Section("App") {
                     LabeledContent("Version", value: "14.0")
                     LabeledContent("Repo", value: "WorkSlop-Mobile-New")
-                    LabeledContent("This device's iOS", value: "\(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
+                    LabeledContent("This device's iOS", value: DeviceInfoEx.fullVersion)
                 }
                 Section("Appearance (3 UIs)") {
                     Picker("UI", selection: $uiStyleRaw) {
@@ -312,7 +294,7 @@ struct SettingsView: View {
                         }
                     }
                     .accessibilityIdentifier("ui-style-picker")
-                    Text("Switching re-themes the app right away (tint color, brand tile, corners).")
+                    Text("Three different UIs: blue tile grid (main), dark gray compact rows (Nugget), purple grid (Nugget Modern). Layout, colors and icons all change.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -328,6 +310,13 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                     Text("Emergency stop: if you must stop an apply mid-way, turn off WireGuard first, then force restart — press Volume Up, Volume Down, then hold the Side button until the Apple logo appears.")
                         .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                Section("Credits") {
+                    LabeledContent("Developer", value: "Adnan.120hz")
+                    LabeledContent("Beta testers", value: "Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
+                    Text("WorkSlop Mobile is its own app — not a port of the desktop build. Tweak payloads follow the key audit of the iOS 26.6.1 firmware.")
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 Section("Pairing file") {
@@ -361,9 +350,15 @@ struct SettingsView: View {
             .onAppear { pairingImported = PairingStore.isImported }
             .fileImporter(
                 isPresented: $importing,
-                allowedContentTypes: [.propertyList, .data]) { result in
+                allowedContentTypes: [.propertyList]) { result in
                 switch result {
                 case .success(let url):
+                    // Only .plist is ever accepted; other formats stay
+                    // greyed out in the picker and are rejected here too.
+                    guard url.pathExtension.lowercased() == "plist" else {
+                        pairingNote = "Only a .plist pairing file is accepted — nothing was saved."
+                        return
+                    }
                     let scoped = url.startAccessingSecurityScopedResource()
                     defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                     guard let data = try? Data(contentsOf: url) else {

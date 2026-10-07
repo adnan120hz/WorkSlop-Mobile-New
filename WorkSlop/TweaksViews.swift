@@ -21,11 +21,48 @@ struct FeatureRow: View {
     let feature: Feature
     @EnvironmentObject private var selection: SelectionStore
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @State private var showInfo = false
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
 
+    /// Explanation text for the info sheet: what the tweak writes,
+    /// where, and through which route — from the payload spec itself.
+    private var explanation: String {
+        var lines: [String] = []
+        lines.append(feature.subtitle)
+        if let spec = PayloadSpecCatalog.all.first(where: { $0.featureID == feature.id }) {
+            for w in spec.writes {
+                if let key = w.key {
+                    lines.append("Writes \(key) to \(w.filePath) (\(w.domain.rawValue)).")
+                } else if let target = w.fileTarget {
+                    lines.append("Target: \(target) at \(w.filePath) (\(w.domain.rawValue)).")
+                }
+                if let condition = w.condition {
+                    lines.append(condition)
+                }
+            }
+            if let note = spec.note {
+                lines.append(note)
+            }
+        }
+        lines.append("Route: \(feature.route.rawValue). Support: \(feature.window.label).")
+        lines.append("Sending needs the on-device restore engine, which is not verified on iOS 26.6.1 yet — staging only for now.")
+        return lines.joined(separator: "\n\n")
+    }
+
     private var availability: Availability {
         feature.availability(for: DeviceInfo.iosVersion)
+    }
+
+    private var infoButton: some View {
+        Button {
+            showInfo = true
+        } label: {
+            Image(systemName: "info.circle")
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("info-\(feature.id)")
     }
 
     private var toggle: some View {
@@ -54,6 +91,7 @@ struct FeatureRow: View {
                             .lineLimit(1)
                     }
                     Spacer(minLength: 4)
+                    infoButton
                     toggle
                 }
                 .padding(.vertical, 1)
@@ -74,6 +112,7 @@ struct FeatureRow: View {
                             .padding(.top, 2)
                     }
                     Spacer(minLength: 8)
+                    infoButton
                     toggle
                 }
                 .padding(10)
@@ -100,6 +139,7 @@ struct FeatureRow: View {
                         .padding(.top, 2)
                     }
                     Spacer(minLength: 8)
+                    infoButton
                     toggle
                 }
                 .padding(.vertical, 4)
@@ -111,71 +151,19 @@ struct FeatureRow: View {
                 ? Color(red: 0.35, green: 0.30, blue: 0.92).opacity(0.07)
                 : nil)
         .listRowSeparator(style == .modern ? .hidden : .automatic)
-    }
-}
-
-/// The Apply action. This app has NO verified on-device restore engine
-/// yet, so Apply never pretends: it states plainly that an imported
-/// pairing file is not a proven delivery, and that nothing was sent.
-/// It becomes a real restore only after the loopback engine passes its
-/// verification spike on iOS 26.6.1.
-struct ApplyBar: View {
-    @EnvironmentObject private var selection: SelectionStore
-    @State private var built: BuiltPayload?
-    @State private var showSheet = false
-
-    var body: some View {
-        Button {
-            built = PayloadBuilder.build(staged: selection.staged)
-            showSheet = true
-        } label: {
-            Text("Apply (\(selection.staged.count) tweak)")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(selection.staged.isEmpty)
-        .accessibilityIdentifier("apply-button")
-        .sheet(isPresented: $showSheet) {
+        .sheet(isPresented: $showInfo) {
             NavigationStack {
-                List {
-                    Section("Payload built from your selection") {
-                        if let built, !built.files.isEmpty {
-                            ForEach(built.files) { file in
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(file.restorePath)
-                                        .font(.system(.footnote, design: .monospaced))
-                                    Text("\(file.domain) — \(file.keys.count) key(s): \(file.keys.joined(separator: ", "))")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        } else {
-                            Text("No fixed payload could be built from this selection.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    if let built, !built.warnings.isEmpty {
-                        Section("Not staged") {
-                            ForEach(built.warnings, id: \.self) { warning in
-                                Text(warning)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    Section("Engine status") {
-                        Text("These files are the real payload, written in this app's container. Sending them to the system needs the on-device restore engine over the loopback WireGuard tunnel, which is not verified on iOS 26.6.1 yet — so nothing has been sent to the device.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Text("After a real apply: restart manually. This app cannot reboot your iPhone.")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
+                ScrollView {
+                    Text(explanation)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
                 }
-                .navigationTitle("Apply")
+                .navigationTitle(feature.title)
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    Button("Done") { showSheet = false }
+                    Button("Done") { showInfo = false }
                 }
             }
         }
@@ -221,7 +209,7 @@ struct LiquidGlassView: View {
                 }
 
                 Section {
-                    ApplyBar()
+                    ApplySection()
                 }
                 }
                 .scrollContentBackground(.hidden)
@@ -232,32 +220,3 @@ struct LiquidGlassView: View {
     }
 }
 
-struct TweaksView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
-
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
-
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                AppleDriftBackground()
-                List {
-                ForEach(FeatureCatalog.sections.filter { $0 != "Liquid Glass" }, id: \.self) { section in
-                    Section(section) {
-                        ForEach(FeatureCatalog.features(in: section)) { feature in
-                            FeatureRow(feature: feature)
-                        }
-                    }
-                }
-
-                Section {
-                    ApplyBar()
-                }
-                }
-                .scrollContentBackground(.hidden)
-            }
-            .modifier(ThemedListStyle(style: style))
-            .navigationTitle("Tweaks")
-        }
-    }
-}

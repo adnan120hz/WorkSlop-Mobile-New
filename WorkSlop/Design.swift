@@ -122,7 +122,7 @@ struct AppleDriftBackground: View {
                         startPoint: .top, endPoint: .bottom)
                 } else {
                     LinearGradient(
-                        colors: [Color(white: 0.92), Color(white: 0.85)],
+                        colors: [Color(white: 0.13), Color(white: 0.08)],
                         startPoint: .top, endPoint: .bottom)
                 }
                 if style.showsDrift {
@@ -130,7 +130,7 @@ struct AppleDriftBackground: View {
                     let m = motes[i]
                     Image(systemName: "apple.logo")
                         .font(.system(size: m.size))
-                        .foregroundStyle(Color.white.opacity(0.55))
+                        .foregroundStyle(Color.white.opacity(0.35))
                         .position(x: geo.size.width * m.x,
                                   y: geo.size.height * m.y)
                         .offset(y: drift && !reduceMotion ? -m.travel : m.travel)

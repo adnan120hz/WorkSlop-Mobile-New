@@ -1,0 +1,98 @@
+import SwiftUI
+
+/// First-launch introduction. Shown once (UserDefaults flag), then
+/// reachable again from Settings. It states plainly what WorkSlop
+/// Mobile supports on iOS and what it needs before anything is applied.
+///
+/// The support lines mirror the desktop support matrix: partial-restore
+/// tweaks cover the iOS 17.4–26.x line on desktop, Liquid Glass keys
+/// live on iOS 26+, the S8 (Latest) payload targets iOS 26.0+, and
+/// iOS 27 follows the desktop's separate full-flow handling. On-device
+/// sending stays behind the restore engine, which is not verified on
+/// iOS 26.6.1 yet — the intro says so instead of promising it.
+struct IntroView: View {
+    @AppStorage("seenIntro") private var seenIntro = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var page = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            TabView(selection: $page) {
+                introPage(
+                    icon: nil,
+                    title: "WorkSlop",
+                    lines: [
+                        "On-device tweaks for this iPhone: Liquid Glass, Status Bar, Daemons, Apple Internal, Custom Icons and PosterBoard — picked from the bottom menus.",
+                        "This device: \(DeviceStatus.modelOrDash) • iOS \(DeviceInfoEx.fullVersion)",
+                    ])
+                .tag(0)
+
+                introPage(
+                    icon: "checkmark.seal",
+                    title: "Supported iOS",
+                    lines: [
+                        "Liquid Glass (regular set): iOS 26.0 and later.",
+                        "Liquid Glass iOS 26.6.1 RC S8: iOS 26.0 and later.",
+                        "Status Bar struct: iOS 18 to <27.",
+                        "SpringBoard / Apple Internal / Daemons: iOS 17.4–26.x, gated per tweak on the tab — a tweak is only locked when this iOS is outside its range.",
+                        "Devices below iOS 16.0 or on iOS 27+ get a full-screen \"iOS version not supported\" notice instead of this app.",
+                    ])
+                .tag(1)
+
+                introPage(
+                    icon: "shield",
+                    title: "Before you apply",
+                    lines: [
+                        "Import the pairing file (.plist from idevicepair) in Settings.",
+                        "On-device applies run over a loopback WireGuard tunnel to this same phone.",
+                        "The app cannot reboot your iPhone — after an apply you restart manually.",
+                        "Cancel really stops: a cancelled restore never keeps running in the background.",
+                        "The restore engine is not verified on iOS 26.6.1 yet, so Apply builds the payload and reports the engine status honestly instead of faking a send.",
+                    ])
+                .tag(2)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+
+            Button(page == 2 ? "Start" : "Continue") {
+                if page == 2 {
+                    seenIntro = true
+                    dismiss()
+                } else {
+                    withAnimation { page += 1 }
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding()
+            .accessibilityIdentifier("intro-continue")
+        }
+    }
+
+    private func introPage(icon: String?, title: String, lines: [String]) -> some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 52))
+                        .foregroundStyle(.tint)
+                        .padding(.top, 32)
+                } else {
+                    BrandTile(size: 84)
+                        .padding(.top, 32)
+                }
+                Text(title)
+                    .font(.title.weight(.bold))
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(lines, id: \.self) { line in
+                        Text(line)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(.horizontal, 28)
+                Spacer(minLength: 24)
+            }
+        }
+    }
+}

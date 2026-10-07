@@ -25,6 +25,7 @@ import Foundation
 
 enum PayloadDomain: String, Equatable {
     case homeDomain = "HomeDomain"
+    case appDomainPosterBoard = "AppDomain-com.apple.PosterBoard"
     case managedPreferencesDomain = "ManagedPreferencesDomain"
     case databaseDomain = "DatabaseDomain"
 }
@@ -96,6 +97,645 @@ struct PayloadSpec: Equatable {
 
 enum PayloadSpecCatalog {
     static let all: [PayloadSpec] = [
+        // Desktop: src/gui/ios/posterboard.py; src/tweaks/posterboard/posterboard_tweak.py.
+        PayloadSpec(
+            featureID: "pb-tendies",
+            writes: [
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "PRBPosterExtensionDataStore",
+                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard on device; delivered via restore, descriptors only — the database is never touched in this mode). Cap: 10 descriptors."
+                )
+            ]
+        ),
+        PayloadSpec(
+            featureID: "pb-templates",
+            writes: [
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "PRBPosterExtensionDataStore",
+                    fileTarget: "User-imported .batter template files (AppDomain-com.apple.PosterBoard on device)."
+                )
+            ]
+        ),
+        PayloadSpec(
+            featureID: "pb-video",
+            writes: [
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "PRBPosterExtensionDataStore",
+                    fileTarget: "Video wallpaper .tendies exported from a freeze-frame image + video (loop / reverse / foreground options)."
+                )
+            ]
+        ),
+        PayloadSpec(
+            featureID: "pb-reset",
+            writes: [
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "PRBPosterExtensionDataStore",
+                    fileTarget: "Reset: clears the delivered descriptors on the next apply; PosterBoard rebuilds itself. No database is restored, so this cannot corrupt the store."
+                )
+            ]
+        ),
+
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-thermalmonitord",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.thermalmonitord",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-ota",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.mobile.softwareupdated",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.OTATaskingAgent",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.softwareupdateservicesd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.mobile.NRDUpdated",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-usagetrackingagent",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.UsageTrackingAgent",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-gamecenter",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.gamed",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-atwakeup",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.atc.atwakeup",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-tips",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.tipsd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-vpn",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.racoon",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-chineselan",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wapic",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wifi.wapic",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-healthkit",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.healthd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-airprint",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.printd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-assistivetouch",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.assistivetouchd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-icloud",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.itunescloudd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-internettethering",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.MobileInternetSharing",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-passbook",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.passd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-spotlight",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.searchd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.corespotlightservice",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.spotlightknowledged",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.spotlightknowledged.updater",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.spotlight.IndexAgent",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-nanotimekit",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.nanotimekitcompaniond",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-voicecontrol",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.assistant_service",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.assistantd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.voiced",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-followup",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.followupd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-location",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.locationd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-wifianalytics",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wifianalyticsd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-analyticshelper",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd.admin",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd.events",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-callanalytics",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.rtcreportingd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-coreduet",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.coreduetd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-insight",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.insightd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-metrics",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.metricsd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-mediaexperience",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.mediaremoted",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-symptomsd",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.symptomsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.symptomsd-app",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-statisticaldiagnostic",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.StatisticalDiagnosticService",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-wirelessdiagnostics",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wirelessdiagnostics",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-duetheuristic",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DuetHeuristic-BM",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DuetHeuristic-BM.Baseband",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-duetexpert",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.duetexpertd",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-decisiond",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.decisiond",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-triald",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.triald",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+        PayloadSpec(
+            featureID: "dm-sociald",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.sociald",
+                    value: .bool(true)
+                )
+            ]
+        ),
+
         // Desktop: src/tweaks/registry.py:406-410;
         // src/tweaks/lg_latest.py:48-64,120-186;
         // src/tweaks/lg_disable.py:80-81.
