@@ -589,7 +589,7 @@ struct ApplySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Apply builds the real payload from your staged tweaks on this phone. Delivery to the system runs over the loopback VPN tunnel with your pairing file - and only once the on-device restore engine passes its checks; if any check fails, nothing is sent.")
+            Text("Apply builds the real payload from your staged tweaks on this phone. Delivery to the system runs over the loopback VPN tunnel with your pairing file - and only once the on-device restore engine passes its checks; if any check fails, nothing is sent. Turn Find My OFF before an apply, ON again after - same as desktop.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             Button {
@@ -650,7 +650,13 @@ struct ApplySection: View {
                             }
                         }
                     }
-                    Section("Engine checks (pairing-file route)") {
+                    Section("Engine checks (parity with the desktop apply)") {
+                        Label("Find My OFF (you check - the app cannot see it)", systemImage: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                        Label("Protective backup verified before any write (desktop Phase 0)", systemImage: "checkmark.shield")
+                            .foregroundStyle(.secondary)
+                        Label("Delivery status: prepared only - staged, not delivered", systemImage: "tray")
+                            .foregroundStyle(.secondary)
                         Label("Pairing file imported", systemImage: PairingStore.isImported ? "checkmark.circle" : "xmark.circle")
                             .foregroundStyle(PairingStore.isImported ? Color.green : Color.red)
                         Label("VPN tunnel on this device", systemImage: DeviceStatus.vpnTunnelActive() ? "checkmark.circle" : "xmark.circle")
