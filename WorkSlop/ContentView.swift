@@ -9,18 +9,22 @@ struct ContentView: View {
     var body: some View {
         TabView {
             HomeView()
+                .appleDriftBackground(style)
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .accessibilityIdentifier("tab-home")
 
             LiquidGlassView()
+                .appleDriftBackground(style)
                 .tabItem { Label("Liquid Glass", systemImage: "square.stack.3d.up.fill") }
                 .accessibilityIdentifier("tab-liquid-glass")
 
             TweaksView()
+                .appleDriftBackground(style)
                 .tabItem { Label("Tweaks", systemImage: "slider.horizontal.3") }
                 .accessibilityIdentifier("tab-tweaks")
 
             SettingsView()
+                .appleDriftBackground(style)
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                 .accessibilityIdentifier("tab-settings")
         }
@@ -172,6 +176,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
             .onAppear { pairingImported = PairingStore.isImported }
             .fileImporter(

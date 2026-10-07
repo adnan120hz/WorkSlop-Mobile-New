@@ -67,6 +67,69 @@ struct BrandTile: View {
     }
 }
 
+/// Drifting Apple-logo backdrop, mirroring the desktop v4 UI's Sky
+/// background: faint "apple.logo" watermarks slowly floating and
+/// turning behind the content. Static when Reduce Motion is on.
+struct AppleDriftBackground: View {
+    var tint: Color = Brand.blue
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var drift = false
+
+    private struct Mote {
+        let x, y, size, delay, duration, travel, spin: Double
+    }
+
+    private let motes: [Mote] = [
+        Mote(x: 0.12, y: 0.10, size: 64, delay: 0.0, duration: 9, travel: 22, spin: 7),
+        Mote(x: 0.82, y: 0.07, size: 42, delay: 1.2, duration: 11, travel: 30, spin: -9),
+        Mote(x: 0.55, y: 0.28, size: 30, delay: 0.6, duration: 8, travel: 18, spin: 11),
+        Mote(x: 0.25, y: 0.42, size: 48, delay: 2.0, duration: 12, travel: 26, spin: -6),
+        Mote(x: 0.88, y: 0.48, size: 72, delay: 0.3, duration: 10, travel: 20, spin: 5),
+        Mote(x: 0.08, y: 0.66, size: 36, delay: 1.6, duration: 9, travel: 28, spin: -12),
+        Mote(x: 0.45, y: 0.72, size: 58, delay: 0.9, duration: 13, travel: 16, spin: 8),
+        Mote(x: 0.72, y: 0.86, size: 40, delay: 2.4, duration: 10, travel: 24, spin: -7),
+        Mote(x: 0.20, y: 0.92, size: 52, delay: 1.1, duration: 11, travel: 20, spin: 10),
+        Mote(x: 0.95, y: 0.24, size: 28, delay: 0.5, duration: 8, travel: 15, spin: -10),
+    ]
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                Color(.systemBackground)
+                ForEach(motes.indices, id: \.self) { i in
+                    let m = motes[i]
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: m.size))
+                        .foregroundStyle(tint.opacity(0.07))
+                        .position(x: geo.size.width * m.x,
+                                  y: geo.size.height * m.y)
+                        .offset(y: drift && !reduceMotion ? -m.travel : m.travel)
+                        .rotationEffect(.degrees(
+                            drift && !reduceMotion ? m.spin : -m.spin))
+                        .animation(
+                            reduceMotion
+                                ? nil
+                                : .easeInOut(duration: m.duration)
+                                    .repeatForever(autoreverses: true)
+                                    .delay(m.delay),
+                            value: drift)
+                }
+            }
+            .ignoresSafeArea()
+        }
+        .onAppear { drift = true }
+    }
+}
+
+extension View {
+    /// Puts the drifting-Apple backdrop behind a tab root, tinted with
+    /// the active UI style. Lists/Forms must also hide their own scroll
+    /// background (`scrollContentBackground(.hidden)`) for it to show.
+    func appleDriftBackground(_ style: UIStyle) -> some View {
+        background(AppleDriftBackground(tint: style.tint))
+    }
+}
+
 /// Honest status chip used wherever a feature's on-device effect or its
 /// delivery engine is not yet proven on a real device.
 struct StatusChip: View {

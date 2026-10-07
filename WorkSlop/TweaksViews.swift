@@ -104,6 +104,7 @@ struct LiquidGlassView: View {
                     ApplyBar()
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Liquid Glass")
         }
     }
@@ -125,6 +126,7 @@ struct TweaksView: View {
                     ApplyBar()
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Tweaks")
         }
     }
