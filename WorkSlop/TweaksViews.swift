@@ -136,7 +136,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(10)
-                .background(Color.white.opacity(0.42))
+                .background(style.tint.opacity(0.15))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
@@ -170,9 +170,9 @@ struct FeatureRow: View {
         }
         .opacity(availability.isEnabled ? 1 : 0.6)
         .listRowBackground(
-            style == .modern
-                ? Color(red: 0.35, green: 0.30, blue: 0.92).opacity(0.07)
-                : nil)
+            style == .nugget
+                ? nil
+                : style.tint.opacity(0.10))
         .listRowSeparator(style == .modern ? .hidden : .automatic)
         .sheet(isPresented: $showInfo) {
             NavigationStack {

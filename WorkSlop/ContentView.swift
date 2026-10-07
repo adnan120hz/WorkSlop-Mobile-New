@@ -60,7 +60,6 @@ struct ContentView: View {
 }
 
 struct HomeView: View {
-    @AppStorage("glassUI") private var glassUI = true
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
@@ -171,8 +170,8 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(Color.white.opacity(0.42))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(style.tint.opacity(0.16))
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -182,7 +181,6 @@ struct HomeView: View {
                     modernTile("key.fill", "Pairing file", pairingImported ? "Imported" : "Not imported")
                     modernTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
-                appearanceChoice
                 menuLinks
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
@@ -205,36 +203,12 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
-        .background(Color.white.opacity(0.42))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(style.tint.opacity(0.16))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
     // MARK: - WorkSlop main layout (blue): tile grid, left header
 
-
-    /// iOS 26/27 only: the "Liquid Glass UI" vs "No Liquid Glass"
-    /// app-appearance choice that sits on Home. Picking "No Liquid
-    /// Glass" flattens the app and blocks the style choice below it.
-    @ViewBuilder
-    private var appearanceChoice: some View {
-        if DeviceInfo.iosVersion >= (26, 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("App appearance (iOS 26)")
-                    .font(.subheadline.weight(.semibold))
-                Picker("App appearance", selection: $glassUI) {
-                    Text("Liquid Glass UI").tag(true)
-                    Text("No Liquid Glass").tag(false)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("appearance-picker")
-                if !glassUI {
-                    Text("Flat look on: the glass backgrounds are off and the UI style choice in Settings is blocked.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
 
     private var workslopHome: some View {
         ScrollView {
@@ -274,7 +248,6 @@ struct HomeView: View {
                     mainTile("key.fill", "Pairing file", pairingImported ? "Imported" : "-")
                     mainTile("checklist", "Staged", "\(selection.staged.count) selected")
                 }
-                appearanceChoice
                 menuLinks
                 Button("Refresh device status") {
                     refreshStatus()
@@ -361,7 +334,6 @@ struct SettingsView: View {
     /// The desktop ships three UIs; the picker exists here too and
     /// re-themes the app (tint, brand tile, corners).
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
-    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("appIconChoice") private var appIconChoice = ""
 
     var body: some View {
@@ -381,12 +353,6 @@ struct SettingsView: View {
                         }
                     }
                     .accessibilityIdentifier("ui-style-picker")
-                    .disabled(!glassUI)
-                    if !glassUI {
-                        Text("Blocked: \"No Liquid Glass\" is selected on Home (iOS 26/27). Pick \"Liquid Glass UI\" there to change styles.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
                     Text("Three different UIs: purple grid (main, Nugget Modern), blue tile grid (WorkSlop), dark gray compact rows (Nugget). Layout, colors and icons all change.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)

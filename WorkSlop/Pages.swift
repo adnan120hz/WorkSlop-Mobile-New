@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
 
 // MARK: - Status Bar (desktop page parity, staged values)
 
@@ -461,7 +462,7 @@ struct PosterBoardView: View {
                 .modifier(ThemedListStyle(style: style))
             }
             .navigationTitle("Themes")
-            .fileImporter(isPresented: $importing, allowedContentTypes: [.data],
+            .fileImporter(isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "tendies") ?? .data],
                           allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
@@ -480,7 +481,7 @@ struct PosterBoardView: View {
                     note = "Import cancelled."
                 }
             }
-            .fileImporter(isPresented: $importingTemplates, allowedContentTypes: [.data],
+            .fileImporter(isPresented: $importingTemplates, allowedContentTypes: [UTType(filenameExtension: "batter") ?? .data],
                           allowsMultipleSelection: true) { result in
                 if case .success(let urls) = result {
                     for url in urls {

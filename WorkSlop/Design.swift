@@ -75,53 +75,33 @@ enum UIStyle: String, CaseIterable {
 struct BrandTile: View {
     var size: CGFloat = 54
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
-    @AppStorage("glassUI") private var glassUI = true
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
-    private var base: Color {
+    /// The desktop WorkSlop icon artwork, recolored per UI: purple
+    /// for the main UI, the original blue second, gray third.
+    private var assetName: String {
         switch style {
-        case .workslop: return Brand.blue
-        case .nugget: return Color(red: 0.22, green: 0.23, blue: 0.27)
-        case .modern: return Color(red: 0.45, green: 0.30, blue: 0.95)
+        case .workslop: return "BrandBlue"
+        case .nugget: return "BrandGray"
+        case .modern: return "BrandPurple"
         }
     }
 
     var body: some View {
-        ZStack {
-            if glassUI {
-                LinearGradient(
-                    colors: [base.opacity(0.85), base],
-                    startPoint: .topLeading, endPoint: .bottomTrailing)
-            } else {
-                base
-            }
-            Text("WS")
-                .font(.system(size: size * 0.38, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
-        }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(
-            cornerRadius: size * 0.26, style: .continuous))
+        Image(assetName)
+            .resizable()
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.26, style: .continuous))
     }
 }
 
 /// Drifting Apple-logo backdrop, mirroring the desktop v4 UI's Sky
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
-/// App appearance choice on Home for iOS 26/27: the app can run with
-/// the Liquid Glass look, or flat ("No Liquid Glass" = plain system
-/// surfaces). When the glass look is off, backgrounds render flat and
-/// the UI-style choice in Settings is blocked.
-enum AppAppearance {
-    static var glassUI: Bool {
-        UserDefaults.standard.object(forKey: "glassUI") as? Bool ?? true
-    }
-}
-
 struct AppleDriftBackground: View {
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
-    @AppStorage("glassUI") private var glassUI = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
 
@@ -146,14 +126,6 @@ struct AppleDriftBackground: View {
     ]
 
     var body: some View {
-        if !glassUI {
-            Color(UIColor.systemBackground).ignoresSafeArea()
-        } else {
-            glassBody
-        }
-    }
-
-    private var glassBody: some View {
         GeometryReader { geo in
             ZStack {
                 if style.showsDrift {
