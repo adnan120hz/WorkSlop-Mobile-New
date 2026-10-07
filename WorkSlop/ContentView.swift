@@ -336,6 +336,8 @@ struct SettingsView: View {
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @AppStorage("appIconChoice") private var appIconChoice = ""
 
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
+
     var body: some View {
         NavigationStack {
             ZStack {
