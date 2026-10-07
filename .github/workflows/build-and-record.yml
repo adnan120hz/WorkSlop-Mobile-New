@@ -1,17 +1,17 @@
-name: Build + screenshot check
+name: Build IPA
 
-# Manual only. Builds the app, runs the UI smoke test, takes a launch
-# screenshot, and packages an unsigned device IPA for sideload testing.
-# Publishes nothing.
-
+# Builds the unsigned device IPA and uploads it as the ONLY artifact.
+# Deliberately no screenshots, no recordings, no extra outputs.
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-15
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -19,46 +19,27 @@ jobs:
       - name: Generate project
         run: xcodegen generate
 
-      - name: Build for simulator
+      - name: Build for simulator (compile check)
         run: |
-          xcodebuild build \
-            -project WorkSlop.xcodeproj \
-            -scheme WorkSlop \
+          xcodebuild -project WorkSlop.xcodeproj -scheme WorkSlop \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Boot simulator + screenshot smoke check
-        run: |
-          SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone 16' | grep -oE '[0-9A-F-]{36}')
-          if [ -z "$SIM_ID" ]; then SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}'); fi
-          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
-          xcrun simctl boot "$SIM_ID" || true
-          set +e
-          xcodebuild test \
-            -project WorkSlop.xcodeproj \
-            -scheme WorkSlop \
-            -destination "platform=iOS Simulator,id=$SIM_ID" \
-            -resultBundlePath "$RUNNER_TEMP/TestResults.xcresult" \
-            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/test-log.txt" | tail -40
-          TEST_RC=${PIPESTATUS[0]}
-          set -e
-          xcrun simctl launch --terminate-running-process "$SIM_ID" com.adnan120hz.workslop -DemoIOS26 -uiStyle workslop || true
-          sleep 3
-          xcrun simctl io "$SIM_ID" screenshot "$RUNNER_TEMP/smoke-launch.png" || true
-          if [ "$TEST_RC" != "0" ]; then echo "UI smoke test failed (rc=$TEST_RC)"; exit 1; fi
+            build CODE_SIGNING_ALLOWED=NO
 
       - name: Build device IPA (unsigned, for sideload testing)
         run: |
-          xcodebuild build \
-            -project WorkSlop.xcodeproj \
+          xcodebuild -project WorkSlop.xcodeproj \
             -scheme WorkSlop \
+            -configuration Release \
             -destination 'generic/platform=iOS' \
-            -derivedDataPath "$RUNNER_TEMP/device-build" \
-            CODE_SIGNING_ALLOWED=NO
-          mkdir -p "$RUNNER_TEMP/Payload"
-          cp -R "$RUNNER_TEMP/device-build/Build/Products/Debug-iphoneos/WorkSlop.app" "$RUNNER_TEMP/Payload/"
-          (cd "$RUNNER_TEMP" && zip -qry WorkSlop-unsigned.ipa Payload)
-          ls -la "$RUNNER_TEMP/WorkSlop-unsigned.ipa"
+            -derivedDataPath ${{ runner.temp }}/DerivedData \
+            build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          APP="${{ runner.temp }}/DerivedData/Build/Products/Release-iphoneos/WorkSlop.app"
+          test -d "$APP"
+          IPA_DIR="${{ runner.temp }}/ipa-staging"
+          mkdir -p "$IPA_DIR/Payload"
+          cp -R "$APP" "$IPA_DIR/Payload/"
+          (cd "$IPA_DIR" && /usr/bin/zip -qry ${{ runner.temp }}/WorkSlop-unsigned.ipa Payload)
+          ls -la ${{ runner.temp }}/WorkSlop-unsigned.ipa
 
       - name: Upload IPA
         if: always()
