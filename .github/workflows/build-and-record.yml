@@ -23,12 +23,13 @@ jobs:
           xcodebuild build \
             -project WorkSlop.xcodeproj \
             -scheme WorkSlop \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Boot simulator + record UI tour
         run: |
           SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone 16' | grep -oE '[0-9A-F-]{36}')
+          if [ -z "$SIM_ID" ]; then SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}'); fi
           echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIM_ID" || true
           xcrun simctl io "$SIM_ID" recordVideo --force "$RUNNER_TEMP/tour.mp4" &
