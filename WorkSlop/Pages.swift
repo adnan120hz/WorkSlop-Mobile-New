@@ -612,7 +612,7 @@ struct ApplySection: View {
             .buttonStyle(.bordered)
             .disabled(selection.staged.isEmpty)
             .accessibilityIdentifier("cancel-button")
-            Text("Cancel here unstages everything before anything is sent. During a real apply, cancelling terminates the restore session: turn off WireGuard, then force-restart (Volume Up, Volume Down, hold Side button). After a successful apply you restart manually — this app cannot reboot your iPhone.")
+            Text("Cancel here unstages everything; nothing is in flight yet. A running restore has no true cancel - on desktop it offers Abort or Resume if the device reconnects; a hard stop is: turn off the VPN, then force-restart (Volume Up, Volume Down, hold Side button). After a successful apply you restart manually — this app cannot reboot your iPhone.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
