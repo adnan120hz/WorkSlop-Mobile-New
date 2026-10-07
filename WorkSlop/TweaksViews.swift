@@ -20,10 +20,10 @@ struct ThemedListStyle: ViewModifier {
 struct FeatureRow: View {
     let feature: Feature
     @EnvironmentObject private var selection: SelectionStore
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var showInfo = false
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     /// Explanation text for the info sheet: what the tweak writes,
     /// where, and through which route — from the payload spec itself.
@@ -123,7 +123,7 @@ struct FeatureRow: View {
                 }
                 .padding(10)
                 .background(Color.white.opacity(0.42))
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
@@ -180,9 +180,9 @@ struct FeatureRow: View {
 }
 
 struct LiquidGlassView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     private var latest: [Feature] {
         FeatureCatalog.features(in: "Liquid Glass").filter { $0.id == "lg-latest" }

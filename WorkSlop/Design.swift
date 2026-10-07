@@ -18,17 +18,28 @@ enum UIStyle: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .workslop: return "WorkSlop (Main)"
+        case .workslop: return "WorkSlop"
         case .nugget: return "Nugget"
-        case .modern: return "Nugget Modern"
+        case .modern: return "Nugget Modern (Main)"
         }
     }
 
     var tint: Color {
         switch self {
         case .workslop: return Brand.blue
-        case .nugget: return Color(red: 0.16, green: 0.16, blue: 0.19)
-        case .modern: return Color(red: 0.35, green: 0.30, blue: 0.92)
+        case .nugget: return Color(red: 0.55, green: 0.60, blue: 0.70)
+        case .modern: return Color(red: 0.45, green: 0.30, blue: 0.95)
+        }
+    }
+
+    /// The WorkSlop app-icon color that follows this UI: purple for
+    /// the main (Nugget Modern) UI, blue second, gray third. Drives
+    /// the in-app brand tile and the Home Screen alternate icon.
+    var iconColorName: String {
+        switch self {
+        case .workslop: return "IconBlue"
+        case .nugget: return "IconGray"
+        case .modern: return "IconPurple"
         }
     }
 
@@ -63,18 +74,35 @@ enum UIStyle: String, CaseIterable {
 
 struct BrandTile: View {
     var size: CGFloat = 54
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
+    @AppStorage("glassUI") private var glassUI = true
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
+
+    private var base: Color {
+        switch style {
+        case .workslop: return Brand.blue
+        case .nugget: return Color(red: 0.22, green: 0.23, blue: 0.27)
+        case .modern: return Color(red: 0.45, green: 0.30, blue: 0.95)
+        }
+    }
 
     var body: some View {
-        Image("BrandIcon")
-            .resizable()
-            .scaledToFill()
-            .frame(width: size, height: size)
-            .clipShape(RoundedRectangle(
-                cornerRadius: Brand.tileCorner * style.tileCornerScale * size / 54,
-                style: .continuous))
+        ZStack {
+            if glassUI {
+                LinearGradient(
+                    colors: [base.opacity(0.85), base],
+                    startPoint: .topLeading, endPoint: .bottomTrailing)
+            } else {
+                base
+            }
+            Text("WS")
+                .font(.system(size: size * 0.38, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white)
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(
+            cornerRadius: size * 0.26, style: .continuous))
     }
 }
 
@@ -92,12 +120,12 @@ enum AppAppearance {
 }
 
 struct AppleDriftBackground: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @AppStorage("glassUI") private var glassUI = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
     private var tint: Color { style.tint }
 
     private struct Mote {

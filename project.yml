@@ -13,6 +13,17 @@ targets:
         CFBundleName: WorkSlop
         CFBundleDisplayName: WorkSlop
         UILaunchScreen: {}
+        CFBundleIcons:
+          CFBundleAlternateIcons:
+            IconPurple:
+              CFBundleIconFiles:
+                - IconPurple
+            IconBlue:
+              CFBundleIconFiles:
+                - IconBlue
+            IconGray:
+              CFBundleIconFiles:
+                - IconGray
     sources:
       - path: WorkSlop
     settings:

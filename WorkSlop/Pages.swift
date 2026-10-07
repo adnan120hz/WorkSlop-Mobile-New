@@ -9,7 +9,7 @@ import PhotosUI
 /// from the device's captured base during a restore session — never
 /// fabricated in the app — so this page stages values, honestly.
 struct StatusBarView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @AppStorage("sb-on") private var masterOn = false
     @AppStorage("sb-fullsignal") private var fullSignal = false
     @AppStorage("sb-silly") private var sillyMode = false
@@ -31,7 +31,7 @@ struct StatusBarView: View {
     @AppStorage("sb-numwifi") private var numericWifi = false
     @AppStorage("sb-hidden-items") private var hiddenItemsRaw = ""
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     /// Desktop-mapped status bar items that can be hidden
     /// (itemIsEnabled indexes from the desktop page).
@@ -127,9 +127,9 @@ struct StatusBarView: View {
 // MARK: - Daemons
 
 struct DaemonsView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {
@@ -172,9 +172,9 @@ struct DaemonsView: View {
 // MARK: - Apple Internal
 
 struct AppleInternalView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {
@@ -238,12 +238,12 @@ enum CustomIconStore {
 }
 
 struct CustomIconsView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var entries: [CustomIconEntry] = CustomIconStore.load()
     @State private var picked: PhotosPickerItem?
     @State private var editingIndex: Int?
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {
@@ -258,9 +258,9 @@ struct CustomIconsView: View {
                                     Image(uiImage: img)
                                         .resizable()
                                         .frame(width: 44, height: 44)
-                                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                                 } else {
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
                                         .fill(Color.secondary.opacity(0.25))
                                         .frame(width: 44, height: 44)
                                         .overlay(Image(systemName: "app").foregroundStyle(.secondary))
@@ -293,11 +293,7 @@ struct CustomIconsView: View {
                         Text("Pick an image, fill the app name and its bundle ID (for example com.apple.mobilesafari). Staged icons are written as Home Screen web clips by the same restore payload as the desktop icon themes.")
                     }
                     Section("Icon packs") {
-                        Link(destination: URL(string: "https://github.com/leminlimez/Cowabunga")!) {
-                            Label("Cowabunga bookmark icons (web)", systemImage: "safari")
-                        }
-                        .accessibilityIdentifier("icons-cowabunga")
-                        Text("Install bookmark icons from the Cowabunga website, or add your own below: PNG image, app name and bundle ID are all required.")
+                        Text("Manual only: download icon packs anywhere you like, then add the images below one by one - image (JPEG / PNG / RAW), app name and bundle ID are all required.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -348,7 +344,7 @@ struct CustomIconsView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         }
                         PhotosPicker(selection: $picked, matching: .images) {
-                            Label("Import image (saved as PNG)", systemImage: "photo")
+                            Label("Import image (JPEG / PNG / RAW)", systemImage: "photo")
                         }
                         Text("App name and bundle ID are required before this icon can be staged.")
                             .font(.caption)
@@ -385,12 +381,14 @@ struct CustomIconsView: View {
 /// this page - imported files join the staged set and are delivered
 /// by the engine from the Apply sections on the tweak pages.
 struct PosterBoardView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var importing = false
     @State private var note: String?
-    @State private var files: [String] = TendiesStore.list()
+    @State private var files: [String] = TendiesStore.list(kind: "Tendies")
+    @State private var templateFiles: [String] = TendiesStore.list(kind: "Templates")
+    @State private var importingTemplates = false
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {
@@ -401,10 +399,10 @@ struct PosterBoardView: View {
                         LockBanner()
                     }
                     Section {
-                        Button("Import files (.tendies / .batter)") { importing = true }
+                        Button("Import PosterBoard file (.tendies)") { importing = true }
                             .accessibilityIdentifier("pb-import")
                         if files.isEmpty {
-                            Text("No files imported yet. PosterBoard has nothing to deliver until you import at least one .tendies file.")
+                            Text("Nothing imported. PosterBoard delivers nothing until at least one .tendies is here.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         } else {
@@ -423,42 +421,75 @@ struct PosterBoardView: View {
                                 .foregroundStyle(.secondary)
                         }
                     } header: {
-                        Text("Your PosterBoard files")
+                        Text("PosterBoard (.tendies)")
                     } footer: {
-                        Text("Up to 10 descriptor files ride one apply (desktop cap). Imported files are copied into the app container.")
+                        Text("Delivered descriptors, desktop style. Up to 10 files ride one apply.")
+                    }
+                    Section {
+                        Button("Import Template file (.batter)") { importingTemplates = true }
+                            .accessibilityIdentifier("themes-template-import")
+                        if templateFiles.isEmpty {
+                            Text("Nothing imported. Templates install and manage delivered PosterBoard content the desktop way.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(templateFiles, id: \.self) { name in
+                                Label(name, systemImage: "doc")
+                                    .font(.footnote)
+                            }
+                            .onDelete { offsets in
+                                TendiesStore.delete(at: offsets, from: templateFiles, kind: "Templates")
+                                templateFiles = TendiesStore.list(kind: "Templates")
+                            }
+                        }
+                    } header: {
+                        Text("Templates (.batter)")
+                    } footer: {
+                        Text("Different job from .tendies: templates work through the PosterBoard database side on desktop. Same targeted-backup route here.")
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
                             FeatureRow(feature: feature)
                         }
                     } header: {
-                        Text("Modes")
+                        Text("Delivery modes")
                     } footer: {
-                        Text("Tendies / Templates / Video ride the desktop PosterBoard route: targeted container backup -> modify -> partial restore. Delivery happens from the Apply sections on the tweak pages once the engine runs - never a direct apply here.")
+                        Text("Both tables ride the desktop route: targeted container backup -> modify -> partial restore. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
                     }
                 }
                 .scrollContentBackground(.hidden)
                 .modifier(ThemedListStyle(style: style))
             }
-            .navigationTitle("PosterBoard")
+            .navigationTitle("Themes")
             .fileImporter(isPresented: $importing, allowedContentTypes: [.data],
                           allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
                     var imported = 0
                     for url in urls {
-                        let ext = url.pathExtension.lowercased()
-                        guard ext == "tendies" || ext == "batter" else { continue }
+                        guard url.pathExtension.lowercased() == "tendies" else { continue }
                         let scoped = url.startAccessingSecurityScopedResource()
                         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        if TendiesStore.save(url: url) { imported += 1 }
+                        if TendiesStore.save(url: url, kind: "Tendies") { imported += 1 }
                     }
-                    files = TendiesStore.list()
+                    files = TendiesStore.list(kind: "Tendies")
                     note = imported > 0
-                        ? "Imported \(imported) file(s). They are staged for the next engine apply."
-                        : "Nothing imported - only .tendies and .batter files are accepted."
+                        ? "Imported \(imported) .tendies file(s). Staged for the next engine apply."
+                        : "Nothing imported - this table takes .tendies only."
                 case .failure:
                     note = "Import cancelled."
+                }
+            }
+            .fileImporter(isPresented: $importingTemplates, allowedContentTypes: [.data],
+                          allowsMultipleSelection: true) { result in
+                if case .success(let urls) = result {
+                    for url in urls {
+                        guard url.pathExtension.lowercased() == "batter" else { continue }
+                        let scoped = url.startAccessingSecurityScopedResource()
+                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                        _ = TendiesStore.save(url: url, kind: "Templates")
+                    }
+                    templateFiles = TendiesStore.list(kind: "Templates")
                 }
             }
         }
@@ -468,20 +499,20 @@ struct PosterBoardView: View {
 // MARK: - Tendies store (PosterBoard imports)
 
 enum TendiesStore {
-    static var dir: URL {
+    static func dir(kind: String) -> URL {
         let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Tendies", isDirectory: true)
+            .appendingPathComponent(kind, isDirectory: true)
         try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }
 
-    static func list() -> [String] {
-        (try? FileManager.default.contentsOfDirectory(atPath: dir.path))?.sorted() ?? []
+    static func list(kind: String) -> [String] {
+        (try? FileManager.default.contentsOfDirectory(atPath: dir(kind: kind).path))?.sorted() ?? []
     }
 
-    static func save(url: URL) -> Bool {
-        guard list().count < 10 else { return false }
-        let dest = dir.appendingPathComponent(url.lastPathComponent)
+    static func save(url: URL, kind: String) -> Bool {
+        guard list(kind: kind).count < 10 else { return false }
+        let dest = dir(kind: kind).appendingPathComponent(url.lastPathComponent)
         do {
             if FileManager.default.fileExists(atPath: dest.path) {
                 try FileManager.default.removeItem(at: dest)
@@ -493,9 +524,9 @@ enum TendiesStore {
         }
     }
 
-    static func delete(at offsets: IndexSet, from files: [String]) {
+    static func delete(at offsets: IndexSet, from files: [String], kind: String) {
         for i in offsets {
-            try? FileManager.default.removeItem(at: dir.appendingPathComponent(files[i]))
+            try? FileManager.default.removeItem(at: dir(kind: kind).appendingPathComponent(files[i]))
         }
     }
 }
@@ -503,9 +534,9 @@ enum TendiesStore {
 // MARK: - SpringBoard tweaks
 
 struct SpringBoardView: View {
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {

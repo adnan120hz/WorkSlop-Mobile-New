@@ -2,9 +2,11 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var selection = SelectionStore()
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("appIconChoice") private var appIconChoice = ""
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
+
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         TabView {
@@ -37,7 +39,7 @@ struct ContentView: View {
                 .accessibilityIdentifier("tab-custom-icons")
 
             PosterBoardView()
-                .tabItem { Label("PosterBoard", systemImage: "photo.on.rectangle") }
+                .tabItem { Label("Themes", systemImage: "photo.on.rectangle") }
                 .accessibilityIdentifier("tab-posterboard")
 
             SettingsView()
@@ -45,6 +47,13 @@ struct ContentView: View {
                 .accessibilityIdentifier("tab-settings")
         }
         .tint(style.tint)
+        .onChange(of: uiStyleRaw) { _ in
+            // The WorkSlop app icon follows the UI automatically:
+            // purple for the main UI, blue second, gray third.
+            if appIconChoice.isEmpty {
+                UIApplication.shared.setAlternateIconName(style.iconColorName)
+            }
+        }
         .environmentObject(selection)
         .preferredColorScheme(style == .nugget ? .dark : nil)
     }
@@ -56,9 +65,9 @@ struct HomeView: View {
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
     @State private var engineStatus = "Engine not probed yet - tap Refresh device status."
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
-    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .workslop }
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
     var body: some View {
         NavigationStack {
@@ -91,7 +100,7 @@ struct HomeView: View {
                     }
                 }
                 VStack(spacing: 0) {
-                    nuggetRow("iphone", "Device", "\(DeviceStatus.model) • iOS \(DeviceInfo.iosVersion.major).\(DeviceInfo.iosVersion.minor)")
+                    nuggetRow("iphone", "Device", "\(DeviceStatus.modelOrDash) • \(DeviceInfoEx.versionWithBuild)")
                     Divider()
                     nuggetRow("network", "VPN tunnel", vpnDetected ? "Detected" : "Not detected")
                     Divider()
@@ -101,7 +110,7 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 12)
                 .background(Color(UIColor.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
@@ -117,7 +126,7 @@ struct HomeView: View {
                     }
                     .padding(12)
                     .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
@@ -255,7 +264,7 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -287,7 +296,7 @@ struct HomeView: View {
             homeMenuLink("app.badge", "Custom Icons", "Bookmark icons from Cowabunga or your own PNG") {
                 CustomIconsView()
             }
-            homeMenuLink("photo.on.rectangle", "PosterBoard", "Import .tendies first - no direct apply here") {
+            homeMenuLink("photo.on.rectangle", "Themes", "PosterBoard .tendies + Templates .batter") {
                 PosterBoardView()
             }
         }
@@ -314,7 +323,7 @@ struct HomeView: View {
             }
             .padding(14)
             .background(Color(UIColor.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
@@ -341,7 +350,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
         .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
@@ -351,7 +360,9 @@ struct SettingsView: View {
     @State private var pairingImported = PairingStore.isImported
     /// The desktop ships three UIs; the picker exists here too and
     /// re-themes the app (tint, brand tile, corners).
-    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.workslop.rawValue
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
+    @AppStorage("glassUI") private var glassUI = true
+    @AppStorage("appIconChoice") private var appIconChoice = ""
 
     var body: some View {
         NavigationStack {
@@ -370,8 +381,32 @@ struct SettingsView: View {
                         }
                     }
                     .accessibilityIdentifier("ui-style-picker")
-                    Text("Three different UIs: blue tile grid (main), dark gray compact rows (Nugget), purple grid (Nugget Modern). Layout, colors and icons all change.")
+                    .disabled(!glassUI)
+                    if !glassUI {
+                        Text("Blocked: \"No Liquid Glass\" is selected on Home (iOS 26/27). Pick \"Liquid Glass UI\" there to change styles.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Three different UIs: purple grid (main, Nugget Modern), blue tile grid (WorkSlop), dark gray compact rows (Nugget). Layout, colors and icons all change.")
                         .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Picker(selection: $appIconChoice) {
+                        Text("Automatic (follows UI)").tag("")
+                        Text("Purple (main)").tag("IconPurple")
+                        Text("Blue").tag("IconBlue")
+                        Text("Gray").tag("IconGray")
+                    } label: {
+                        Label("WorkSlop app icon", systemImage: "app.badge")
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("app-icon-picker")
+                    .onChange(of: appIconChoice) { choice in
+                        let style = UIStyle(rawValue: uiStyleRaw) ?? .modern
+                        UIApplication.shared.setAlternateIconName(
+                            choice.isEmpty ? style.iconColorName : choice)
+                    }
+                    Text("The app icon follows the UI by itself - purple for the main UI, blue second, gray third - unless you pin one here. The in-app brand tile follows the same rule.")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 Section("Safety") {
