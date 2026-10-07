@@ -29,22 +29,35 @@ jobs:
       - name: Boot simulator + record UI tour
         run: |
           SIM_ID=$(xcrun simctl list devices available | grep -m1 'iPhone 16' | grep -oE '[0-9A-F-]{36}')
+          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$SIM_ID" || true
           xcrun simctl io "$SIM_ID" recordVideo --force "$RUNNER_TEMP/tour.mp4" &
           REC_PID=$!
           sleep 2
+          set +e
           xcodebuild test \
             -project WorkSlop.xcodeproj \
             -scheme WorkSlop \
             -destination "platform=iOS Simulator,id=$SIM_ID" \
-            CODE_SIGNING_ALLOWED=NO || true
+            -resultBundlePath "$RUNNER_TEMP/TestResults.xcresult" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/test-log.txt" | tail -40
+          TEST_RC=${PIPESTATUS[0]}
+          set -e
+          xcrun simctl launch --terminate-running-process "$SIM_ID" com.adnan120hz.workslop -DemoIOS26 || true
+          sleep 3
+          xcrun simctl io "$SIM_ID" screenshot "$RUNNER_TEMP/smoke-launch.png" || true
           kill -INT $REC_PID || true
           sleep 2
           ls -la "$RUNNER_TEMP/tour.mp4"
+          if [ "$TEST_RC" != "0" ]; then echo "UI tour test failed (rc=$TEST_RC)"; exit 1; fi
 
       - name: Upload recording
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-tour-recording
-          path: ${{ runner.temp }}/tour.mp4
+          path: |
+            ${{ runner.temp }}/tour.mp4
+            ${{ runner.temp }}/smoke-launch.png
+            ${{ runner.temp }}/test-log.txt
           if-no-files-found: warn

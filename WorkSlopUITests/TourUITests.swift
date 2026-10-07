@@ -10,6 +10,11 @@ final class TourUITests: XCTestCase {
         // Demonstrate the supported (open) iOS 26 state in the tour.
         app.launchArguments = ["-DemoIOS26"]
         app.launch()
+        XCTAssertEqual(app.state, .runningForeground,
+                       "app must be in the foreground after launch")
+        XCTAssertTrue(app.tabBars.buttons["Liquid Glass"]
+            .waitForExistence(timeout: 15),
+            "tab bar never appeared — app UI not shown")
         sleep(2)
 
         app.tabBars.buttons["Liquid Glass"].tap()
