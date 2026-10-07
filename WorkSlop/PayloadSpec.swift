@@ -160,18 +160,6 @@ enum PayloadSpecCatalog {
 
         // Desktop: src/tweaks/registry.py:253;
         // src/tweaks/basic_plist_locations.py:20.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.globalPreferences"),
-                    filePath: "/var/Managed Preferences/mobile/.GlobalPreferences.plist",
-                    restorePath: "mobile/.GlobalPreferences.plist",
-                    key: "com.apple.SwiftUI.DisableSolarium",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/registry.py:255;
         // src/tweaks/basic_plist_locations.py:27.
@@ -451,18 +439,6 @@ enum PayloadSpecCatalog {
 
         // Desktop: src/tweaks/registry.py:136-137;
         // src/tweaks/basic_plist_locations.py:10.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.airdrop"),
-                    filePath: "/var/Managed Preferences/mobile/com.apple.sharingd.plist",
-                    restorePath: "mobile/com.apple.sharingd.plist",
-                    key: "OverrideTimeLimitEveryoneMode",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/registry.py:139-140;
         // src/tweaks/basic_plist_locations.py:8.
@@ -692,63 +668,15 @@ enum PayloadSpecCatalog {
 
         // Desktop: src/tweaks/registry.py:227;
         // src/tweaks/basic_plist_locations.py:20.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.globalPreferences"),
-                    filePath: "/var/Managed Preferences/mobile/.GlobalPreferences.plist",
-                    restorePath: "mobile/.GlobalPreferences.plist",
-                    key: "SBDisableClockIconSecondsHand",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/registry.py:216;
         // src/tweaks/basic_plist_locations.py:20.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.globalPreferences"),
-                    filePath: "/var/Managed Preferences/mobile/.GlobalPreferences.plist",
-                    restorePath: "mobile/.GlobalPreferences.plist",
-                    key: "iMessageDiagnosticsEnabled",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/registry.py:231;
         // src/tweaks/basic_plist_locations.py:22.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.appStore"),
-                    filePath: "/var/Managed Preferences/mobile/com.apple.AppStore.plist",
-                    restorePath: "mobile/com.apple.AppStore.plist",
-                    key: "debugGestureEnabled",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/registry.py:233;
         // src/tweaks/basic_plist_locations.py:26.
-        PayloadSpec(
-            writes: [
-                PayloadWrite(
-                    domain: .managedPreferencesDomain,
-                    location: .fileLocation(member: "FileLocation.notes"),
-                    filePath: "/var/Managed Preferences/mobile/com.apple.mobilenotes.plist",
-                    restorePath: "mobile/com.apple.mobilenotes.plist",
-                    key: "DebugModeEnabled",
-                    value: .bool(true)
-                )
-            ]
-        ),
 
         // Desktop: src/tweaks/icon_themes/icon_theme.py:4-21;
         // src/tweaks/icon_themes/icon_themes_tweak.py:38-57,241-277.
