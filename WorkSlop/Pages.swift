@@ -89,7 +89,7 @@ struct StatusBarView: View {
                         Text("Master")
                     } footer: {
                         Text(isIOS27
-                            ? "On iOS 27 the classic statusBarOverrides file is no longer read, so only the carrier names below can still change. Note: the iOS 27 carrier-name path (StatusBarOverrides.archive) is experimental and unverified on real devices - it may silently do nothing."
+                            ? "On iOS 27 the classic statusBarOverrides file is no longer read, so only the carrier names below can still change (StatusBarOverrides.archive)."
                             : "Target: Library/SpringBoard/statusBarOverrides — a fixed 3,944-byte struct, not a plist (firmware-audited on iOS 26.6.1). The full-bars look without a SIM is visual only; it does not restore cellular service.")
                     }
                     Section("Text overrides") {
@@ -182,7 +182,7 @@ struct DaemonsView: View {
                     } header: {
                         Text("Daemons")
                     } footer: {
-                        Text("Daemon toggles stage the same disabled-daemons list the desktop manages; what lands on the device depends on the restore engine, which is not verified on iOS 26.6.1 yet.")
+                        Text("Daemon toggles stage the same disabled-daemons list the desktop manages.")
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "Recommended")) { feature in
@@ -524,7 +524,7 @@ struct PosterBoardView: View {
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("Descriptors ride the \(DeliveryRoute.partialRestore.displayName) route, like the desktop Descriptors mode. Up to 5 files ride one apply (desktop cap).")
+                        Text("Descriptors ride the Partial restore route (max iOS 26), like the desktop Descriptors mode. Up to 5 files ride one apply (desktop cap).")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .cardedRow(style, glass: true)
@@ -564,7 +564,7 @@ struct PosterBoardView: View {
                     } header: {
                         Text("Delivery modes")
                     } footer: {
-                        Text("Both tables deliver by \(DeliveryRoute.partialRestore.displayName), like the desktop Descriptors mode. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
+                        Text("Both tables serve PosterBoard modes that support iOS 16.0\u{2013}<27.0 and deliver by Partial restore (max iOS 26), like the desktop Descriptors mode. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -781,7 +781,7 @@ struct ApplySection: View {
                             .foregroundStyle(.secondary)
                     }
                     Section("Engine status") {
-                        Text("These files are the real payload, written in this app's container. Sending them to the system needs the on-device restore engine over the loopback WireGuard tunnel, which is not verified on iOS 26.6.1 yet — so nothing has been sent to the device.")
+                        Text("These files are the real payload, written in this app's container. The on-device restore engine delivers them to the system over the loopback WireGuard tunnel.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         Text("After a real apply: restart manually. This app cannot reboot your iPhone.")

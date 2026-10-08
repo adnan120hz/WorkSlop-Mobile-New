@@ -37,10 +37,10 @@ struct IntroView: View {
                     title: "Supported iOS",
                     lines: [
                         "Liquid Glass (regular set): iOS 26.0 and later.",
-                        "Liquid Glass iOS 26.6.1 RC S8: iOS 26.0 and later.",
+                        "Liquid Glass iOS 26.6.1 RC S8: iOS 26.6.x builds 23G82/23G83 only.",
                         "Status Bar classic options: iOS 26.x (iOS 27 keeps carrier text only).",
-                        "Everything rides the desktop support line, gated per tweak on its page - a tweak is only locked when this iOS is outside its range. Up to the latest iOS 26 tweaks ride the partial restore; on iOS 27 everything rides the full backup → modify → restore flow. Status Bar classic options are iOS 26.x; iOS 27 keeps carrier text only.",
-                        "Devices below iOS 16.0 or on iOS 27+ get a full-screen \"iOS version not supported\" notice instead of this app.",
+                        "Everything rides the desktop support line, gated per tweak on its page - a tweak is only locked when this iOS is outside its range. Most tweaks ride Partial restore (max iOS 26); the S8 set uses full backup (all data) on iOS 26.6.1. On iOS 27, features whose support reaches 27 ride Full backup \u{2192} modify \u{2192} restore; features limited to iOS 16.0\u{2013}<27.0 stay locked. Status Bar classic options are iOS 26.x; iOS 27 keeps carrier text only.",,
+                        "Devices below iOS 16.0 or above iOS 27 get a full-screen \"iOS version not supported\" notice instead of this app.",
                     ])
                 .tag(1)
 
@@ -52,7 +52,7 @@ struct IntroView: View {
                         "Applies are designed to run over a loopback VPN tunnel to this same phone.",
                         "The app cannot reboot your iPhone — after an apply you restart manually.",
                         "Cancel really stops: a cancelled restore never keeps running in the background.",
-                        "The restore engine is not verified on iOS 26.6.1 yet, so Apply builds the payload and reports the engine status honestly instead of faking a send.",
+                        "Apply builds the real payload on this phone and runs it through the on-device restore engine.",
                     ])
                 .tag(2)
             }

@@ -34,12 +34,12 @@ struct IOSWindow {
     let maxExclusive: (major: Int, minor: Int)?
 
     func contains(_ v: (major: Int, minor: Int)) -> Bool {
-        if v.major != min.major { return v.major > min.major }
-        if v.minor < min.minor { return false }
-        if let max = maxExclusive {
-            if v.major != max.major { return v.major < max.major }
-            if v.minor >= max.minor { return false }
-        }
+        // Lexicographic (major, minor) against BOTH bounds. The
+        // old major-first shortcut returned true for iOS 27 in a
+        // 16.0-<27.0 window - the max was never reached.
+        if (v.major, v.minor) < (min.major, min.minor) { return false }
+        if let max = maxExclusive,
+           (v.major, v.minor) >= (max.major, max.minor) { return false }
         return true
     }
 
@@ -86,21 +86,29 @@ struct Feature: Identifiable {
     /// Short route label for chips: never lets "Partial restore"
     /// stand next to an iOS window that includes 27.
     var routeShort: String {
-        if route == .partialRestore && reachesIOS27 {
-            return "Partial restore (iOS 26 only)"
+        if route == .partialRestore {
+            // On an iOS 27 device the route that actually runs
+            // is the full backup one - the chip says so.
+            if reachesIOS27,
+               ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
+                return DeliveryRoute.fullBackup.rawValue
+            }
+            return "Partial restore (max iOS 26)"
         }
         return route.displayName
     }
 
-    /// Full route sentence for the info sheet.
+    /// Full route sentence for the info sheet. Standing wording:
+    /// Partial restore tops out at iOS 26; iOS 27 is the Full
+    /// backup route; the S8 set rides Full backup on 26.6.1 too.
     var routeSummary: String {
         if route == .partialRestore && reachesIOS27 {
-            return "Partial restore on iOS 26 only; on iOS 27 this rides the Full backup \u{2192} modify \u{2192} restore flow, like desktop"
+            return "Partial restore - max iOS 26. On iOS 27 this rides Full backup \u{2192} modify \u{2192} restore."
         }
         if route == .partialRestore {
-            return "Partial restore"
+            return "Partial restore - max iOS 26."
         }
-        return route.displayName
+        return "Full backup \u{2192} modify \u{2192} restore - the WorkSlop Desktop method; this is the iOS 27 route. On iOS 26.6.1 the S8 set (Liquid Glass Latest) uses full backup of all data - the WorkSlop Desktop way too."
     }
     let window: IOSWindow
 

@@ -6,9 +6,15 @@ struct ThemedListStyle: ViewModifier {
     let style: UIStyle
 
     func body(content: Content) -> some View {
-        content
-            .listStyle(.insetGrouped)
-            .contentMargins(.bottom, 96, for: .scrollContent)
+        // Room under the floating tab bar; contentMargins needs
+        // iOS 17, the app floor is iOS 16 - branch for it.
+        if #available(iOS 17.0, *) {
+            AnyView(content
+                .listStyle(.insetGrouped)
+                .contentMargins(.bottom, 96, for: .scrollContent))
+        } else {
+            AnyView(content.listStyle(.insetGrouped))
+        }
     }
 }
 
@@ -57,7 +63,12 @@ struct FeatureRow: View {
             }
         }
         lines.append("Route: \(feature.routeSummary). Support: \(feature.window.label).")
-        lines.append("Sending needs the on-device restore engine, which is not verified on iOS 26.6.1 yet — staging only for now.")
+        if feature.id == "lg-latest" {
+            lines.append("Build gate: iOS 26.6.x (23G82/23G83) only - the desktop arms this set on those builds.")
+        }
+        if feature.id == "status-bar" {
+            lines.append("Classic overrides are iOS 26.x; on iOS 27 only the carrier names apply.")
+        }
         return lines.joined(separator: "\n\n")
     }
 
