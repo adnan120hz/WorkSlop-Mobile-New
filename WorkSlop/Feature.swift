@@ -74,6 +74,34 @@ struct Feature: Identifiable {
     let subtitle: String
     let section: String
     let route: DeliveryRoute
+
+    /// True when this feature can be used on iOS 27 at all - in
+    /// which case a partial-restore feature must say out loud that
+    /// Partial restore itself is iOS 26 only.
+    var reachesIOS27: Bool {
+        guard let max = window.maxExclusive else { return true }
+        return max.major > 27 || (max.major == 27 && max.minor > 0)
+    }
+
+    /// Short route label for chips: never lets "Partial restore"
+    /// stand next to an iOS window that includes 27.
+    var routeShort: String {
+        if route == .partialRestore && reachesIOS27 {
+            return "Partial restore (iOS 26 only)"
+        }
+        return route.displayName
+    }
+
+    /// Full route sentence for the info sheet.
+    var routeSummary: String {
+        if route == .partialRestore && reachesIOS27 {
+            return "Partial restore on iOS 26 only; on iOS 27 this rides the Full backup \u{2192} modify \u{2192} restore flow, like desktop"
+        }
+        if route == .partialRestore {
+            return "Partial restore"
+        }
+        return route.displayName
+    }
     let window: IOSWindow
 
     func availability(for ios: (major: Int, minor: Int)) -> Availability {

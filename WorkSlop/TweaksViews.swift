@@ -6,11 +6,9 @@ struct ThemedListStyle: ViewModifier {
     let style: UIStyle
 
     func body(content: Content) -> some View {
-        if style == .nugget {
-            content.listStyle(.plain)
-        } else {
-            content.listStyle(.insetGrouped)
-        }
+        content
+            .listStyle(.insetGrouped)
+            .contentMargins(.bottom, 96, for: .scrollContent)
     }
 }
 
@@ -58,7 +56,7 @@ struct FeatureRow: View {
                 lines.append(note)
             }
         }
-        lines.append("Route: \(feature.route.displayName). Support: \(feature.window.label).")
+        lines.append("Route: \(feature.routeSummary). Support: \(feature.window.label).")
         lines.append("Sending needs the on-device restore engine, which is not verified on iOS 26.6.1 yet — staging only for now.")
         return lines.joined(separator: "\n\n")
     }
@@ -108,8 +106,8 @@ struct FeatureRow: View {
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
-                        if !toggleEnabled {
-                            Text(availability.isEnabled ? ActivationGate.message : (availability.chipText ?? ""))
+                        if !availability.isEnabled {
+                            Text(availability.chipText ?? "")
                                 .font(.caption2)
                                 .foregroundStyle(.orange)
                                 .lineLimit(2)
@@ -119,7 +117,8 @@ struct FeatureRow: View {
                     infoButton
                     toggle
                 }
-                .padding(.vertical, 1)
+                .padding(12)
+                .cardSurface(style, glass: true, radius: 26)
             case .modern:
                 // Card rows on a purple-tinted plate.
                 HStack(alignment: .center, spacing: 12) {
@@ -134,12 +133,9 @@ struct FeatureRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
-                            StatusChip(text: feature.route.displayName)
+                            StatusChip(text: feature.routeShort)
                             if let chip = availability.chipText {
                                 StatusChip(text: chip, warn: true)
-                            }
-                            if availability.isEnabled && !ActivationGate.unlocked {
-                                StatusChip(text: "Needs pairing file + VPN", warn: true)
                             }
                         }
                         .padding(.top, 2)
@@ -163,12 +159,9 @@ struct FeatureRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
-                            StatusChip(text: feature.route.displayName)
+                            StatusChip(text: feature.routeShort)
                             if let chip = availability.chipText {
                                 StatusChip(text: chip, warn: true)
-                            }
-                            if availability.isEnabled && !ActivationGate.unlocked {
-                                StatusChip(text: "Needs pairing file + VPN", warn: true)
                             }
                         }
                         .padding(.top, 2)
@@ -182,8 +175,8 @@ struct FeatureRow: View {
             }
         }
         .opacity(availability.isEnabled ? 1 : 0.6)
-        .listRowBackground(style == .nugget ? nil : Color.clear)
-        .listRowSeparator(style == .nugget ? .automatic : .hidden)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
         .sheet(isPresented: $showInfo) {
             NavigationStack {
                 ScrollView {
@@ -193,6 +186,7 @@ struct FeatureRow: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
                 }
+                .toolbarBackground(.visible, for: .navigationBar)
                 .navigationTitle(feature.title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -219,7 +213,7 @@ struct LiquidGlassView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                 Section {
                     LockBanner()
@@ -241,7 +235,7 @@ struct LiquidGlassView: View {
                 } header: {
                     Text("Liquid Glass")
                 } footer: {
-                    Text("The regular set rides the \(DeliveryRoute.partialRestore.displayName) route, same as on desktop.")
+                    Text("The regular set: Partial restore on iOS 26, Full backup \u{2192} modify \u{2192} restore on iOS 27 - the same split as desktop.")
                 }
 
                 Section {
@@ -253,6 +247,7 @@ struct LiquidGlassView: View {
             }
             .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Liquid Glass")
         }
     }

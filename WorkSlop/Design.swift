@@ -127,9 +127,9 @@ enum UIStyle: String, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .workslop: return "WorkSlop"
-        case .nugget: return "Nugget"
-        case .modern: return "Nugget Modern (Main)"
+        case .workslop: return "Blue UI"
+        case .nugget: return "Dark UI"
+        case .modern: return "WorkSlop Main UI"
         }
     }
 
@@ -210,6 +210,9 @@ struct BrandTile: View {
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
 struct AppleDriftBackground: View {
+    /// List pages pass false: the motes stay put, so the glass
+    /// cards above are not re-sampled every frame.
+    var animated: Bool = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
@@ -268,7 +271,7 @@ struct AppleDriftBackground: View {
             }
             .ignoresSafeArea()
         }
-        .onAppear { drift = true }
+        .onAppear { if animated { drift = true } }
     }
 }
 

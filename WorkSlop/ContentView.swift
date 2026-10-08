@@ -81,6 +81,7 @@ struct HomeView: View {
                     workslopHome
                 }
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Home")
             .onAppear { pairingImported = PairingStore.isImported }
         }
@@ -335,7 +336,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                 Section("App") {
                     LabeledContent("Version", value: "14.0")
@@ -349,7 +350,7 @@ struct SettingsView: View {
                         }
                     }
                     .accessibilityIdentifier("ui-style-picker")
-                    Text("Three different UIs: purple grid (main, Nugget Modern), blue tile grid (WorkSlop), dark gray compact rows (Nugget). Layout, colors and icons all change.")
+                    Text("Three different UIs: purple grid (WorkSlop Main UI), blue tile grid (Blue UI), dark gray rows (Dark UI). Layout, colors and icons all change.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Picker(selection: $appIconChoice) {
@@ -436,6 +437,7 @@ struct SettingsView: View {
             .modifier(ThemedRows(style: style))
             }
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Settings")
             .onAppear { pairingImported = PairingStore.isImported }
             .fileImporter(
@@ -508,6 +510,7 @@ struct TunnelInfoView: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("VPN tunnel")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

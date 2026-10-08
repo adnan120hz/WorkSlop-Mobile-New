@@ -69,7 +69,7 @@ struct StatusBarView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         LockBanner()
@@ -154,6 +154,7 @@ struct StatusBarView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Status Bar")
         }
     }
@@ -169,7 +170,7 @@ struct DaemonsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         LockBanner()
@@ -201,6 +202,7 @@ struct DaemonsView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Daemons")
         }
     }
@@ -216,7 +218,7 @@ struct AppleInternalView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         LockBanner()
@@ -239,6 +241,7 @@ struct AppleInternalView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Apple Internal")
         }
     }
@@ -321,7 +324,7 @@ struct CustomIconsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         ForEach(entries.indices, id: \.self) { i in
@@ -407,6 +410,7 @@ struct CustomIconsView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Custom Icons")
             .sheet(item: Binding(
                 get: { editingIndex.map { IndexBox(value: $0) } },
@@ -445,6 +449,7 @@ struct CustomIconsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .toolbarBackground(.visible, for: .navigationBar)
                 .navigationTitle("Icon")
                 .toolbar {
                     Button("Done") {
@@ -490,7 +495,7 @@ struct PosterBoardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         LockBanner()
@@ -566,6 +571,7 @@ struct PosterBoardView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Themes")
             .fileImporter(isPresented: $importing,
                           allowedContentTypes: [UTType(filenameExtension: importKind == "Tendies" ? "tendies" : "batter") ?? .data],
@@ -642,7 +648,7 @@ struct SpringBoardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppleDriftBackground()
+                AppleDriftBackground(animated: false)
                 List {
                     Section {
                         LockBanner()
@@ -661,6 +667,7 @@ struct SpringBoardView: View {
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("SpringBoard")
         }
     }
@@ -784,6 +791,7 @@ struct ApplySection: View {
                 }
                 .modifier(ThemedListStyle(style: style))
                 .modifier(ThemedRows(style: style))
+                .toolbarBackground(.visible, for: .navigationBar)
                 .navigationTitle("Apply")
                 .toolbar {
                     Button("Done") { showSheet = false }
