@@ -2,6 +2,75 @@ import SwiftUI
 
 /// WorkSlop brand tokens — mirrors the desktop app: strong (not pale)
 /// blue/white, rounded brand tile with bold white "WS".
+/// Card surface for the app-wide appearance choice. ON: real
+/// Liquid Glass from the iOS 26 SDK. OFF: the flat card look of the
+/// pre-glass build - solid, no material, no refraction.
+struct CardSurface: ViewModifier {
+    let style: UIStyle
+    let glass: Bool
+    var radius: CGFloat = 24
+
+    func body(content: Content) -> some View {
+        Group {
+            if glass {
+                if #available(iOS 26.0, *) {
+                    content.glassEffect(
+                        .regular.tint(style.tint.opacity(0.26)),
+                        in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                } else {
+                    content.background(
+                        .ultraThinMaterial,
+                        in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                }
+            } else {
+                content
+                    .background(flatFill)
+                    .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            }
+        }
+    }
+
+    private var flatFill: Color {
+        style == .nugget
+            ? Color(UIColor.secondarySystemBackground)
+            : style.tint.opacity(0.13)
+    }
+}
+
+/// Tab bar chrome: glass lets the iOS 26 floating glass bar show;
+/// flat forces the opaque pre-glass bar.
+struct TabBarChrome: ViewModifier {
+    let glass: Bool
+
+    func body(content: Content) -> some View {
+        if glass {
+            content
+        } else {
+            content
+                .toolbarBackground(.visible, for: .tabBar)
+                .toolbarBackground(Color(UIColor.systemBackground), for: .tabBar)
+        }
+    }
+}
+
+extension View {
+    /// Padded card using the current appearance (glass or flat).
+    func cardSurface(_ style: UIStyle, glass: Bool, radius: CGFloat = 24) -> some View {
+        modifier(CardSurface(style: style, glass: glass, radius: radius))
+    }
+
+    /// A List row rendered as a self-contained colored card, so no
+    /// menu depends on list-style backgrounds to avoid white blocks.
+    func cardedRow(_ style: UIStyle, glass: Bool) -> some View {
+        padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .modifier(CardSurface(style: style, glass: glass))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+    }
+}
+
 enum Brand {
     static let blue = Color(red: 0.02, green: 0.32, blue: 0.85)
     static let blueStrong = Color(red: 0.0, green: 0.25, blue: 0.75)

@@ -31,6 +31,7 @@ struct ThemedRows: ViewModifier {
 struct FeatureRow: View {
     let feature: Feature
     @EnvironmentObject private var selection: SelectionStore
+    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var showInfo = false
 
@@ -147,8 +148,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(10)
-                .background(style.tint.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .cardSurface(style, glass: glassUI)
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {

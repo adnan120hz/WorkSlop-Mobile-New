@@ -242,6 +242,7 @@ enum CustomIconStore {
 }
 
 struct CustomIconsView: View {
+    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var entries: [CustomIconEntry] = CustomIconStore.load()
     @State private var picked: PhotosPickerItem?
@@ -300,6 +301,7 @@ struct CustomIconsView: View {
                         Text("Manual only: download icon packs anywhere you like, then add the images below one by one - image (JPEG / PNG / RAW), app name and bundle ID are all required.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                            .cardedRow(style, glass: glassUI)
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "Custom Icons")) { feature in
@@ -386,6 +388,7 @@ struct CustomIconsView: View {
 /// this page - imported files join the staged set and are delivered
 /// by the engine from the Apply sections on the tweak pages.
 struct PosterBoardView: View {
+    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var importing = false
     @State private var note: String?
@@ -406,10 +409,12 @@ struct PosterBoardView: View {
                     Section {
                         Button("Import PosterBoard file (.tendies)") { importing = true }
                             .accessibilityIdentifier("pb-import")
+                            .cardedRow(style, glass: glassUI)
                         if files.isEmpty {
                             Text("Nothing imported. PosterBoard delivers nothing until at least one .tendies is here.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                                .cardedRow(style, glass: glassUI)
                         } else {
                             ForEach(files, id: \.self) { name in
                                 Label(name, systemImage: "doc")
@@ -425,18 +430,22 @@ struct PosterBoardView: View {
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
+                        Text("Descriptors ride a plain partial restore on desktop - no backup runs for this mode. Up to 5 files ride one apply (desktop cap).")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .cardedRow(style, glass: glassUI)
                     } header: {
                         Text("PosterBoard (.tendies)")
-                    } footer: {
-                        Text("Descriptors ride a plain partial restore on desktop - no backup runs for this mode. Up to 5 files ride one apply (desktop cap).")
                     }
                     Section {
                         Button("Import Template file (.batter)") { importingTemplates = true }
                             .accessibilityIdentifier("themes-template-import")
+                            .cardedRow(style, glass: glassUI)
                         if templateFiles.isEmpty {
                             Text("Nothing imported. Templates install and manage delivered PosterBoard content the desktop way.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                                .cardedRow(style, glass: glassUI)
                         } else {
                             ForEach(templateFiles, id: \.self) { name in
                                 Label(name, systemImage: "doc")
@@ -447,10 +456,12 @@ struct PosterBoardView: View {
                                 templateFiles = TendiesStore.list(kind: "Templates")
                             }
                         }
+                        Text("Different job from .tendies: template packages manage delivered PosterBoard content. (The database/Configurations side exists on desktop and is not offered on mobile.)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .cardedRow(style, glass: glassUI)
                     } header: {
                         Text("Templates (.batter)")
-                    } footer: {
-                        Text("Different job from .tendies: template packages manage delivered PosterBoard content. (The database/Configurations side exists on desktop and is not offered on mobile.)")
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "PosterBoard")) { feature in
