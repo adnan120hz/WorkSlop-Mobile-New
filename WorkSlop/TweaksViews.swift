@@ -22,8 +22,8 @@ struct ThemedRows: ViewModifier {
 
     func body(content: Content) -> some View {
         content.listRowBackground(
-            style == .nugget ? nil : style.tint.opacity(0.08))
-            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.16))
+            style == .nugget ? nil : style.tint.opacity(0.18))
+            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.25))
     }
 }
 
@@ -177,15 +177,13 @@ struct FeatureRow: View {
                     infoButton
                     toggle
                 }
-                .padding(.vertical, 4)
+                .padding(10)
+                .cardSurface(style, glass: true)
             }
         }
         .opacity(availability.isEnabled ? 1 : 0.6)
-        .listRowBackground(
-            style == .nugget
-                ? nil
-                : style.tint.opacity(0.08))
-        .listRowSeparator(style == .modern ? .hidden : .automatic)
+        .listRowBackground(style == .nugget ? nil : Color.clear)
+        .listRowSeparator(style == .nugget ? .automatic : .hidden)
         .sheet(isPresented: $showInfo) {
             NavigationStack {
                 ScrollView {
@@ -248,6 +246,7 @@ struct LiquidGlassView: View {
 
                 Section {
                     ApplySection()
+                        .cardedRow(style, glass: true)
                 }
                 }
                 .scrollContentBackground(.hidden)

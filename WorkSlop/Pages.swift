@@ -77,11 +77,14 @@ struct StatusBarView: View {
                     Section {
                         FeatureRow(feature: feature)
                         Toggle("Enable Status Bar Modifications", isOn: $masterOn)
+                            .cardedRow(style, glass: true)
                         Toggle("Full Signal Bars (No SIM Visual)", isOn: $fullSignal)
                             .disabled(!ActivationGate.unlocked || isIOS27)
+                            .cardedRow(style, glass: true)
                         Toggle("Silly Mode", isOn: $sillyMode)
                             .disabled(!ActivationGate.unlocked || isIOS27)
                             .accessibilityIdentifier("sb-enable")
+                            .cardedRow(style, glass: true)
                     } header: {
                         Text("Master")
                     } footer: {
@@ -91,24 +94,40 @@ struct StatusBarView: View {
                     }
                     Section("Text overrides") {
                         TextField("Status Bar Time Text", text: $timeText).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                         TextField("Date Text", text: $dateText).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                         TextField("Breadcrumb Text", text: $crumbText).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                         TextField("Battery Detail Text", text: $batteryDetail).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                         TextField("Carrier Text", text: $carrierText)
+                        .cardedRow(style, glass: true)
                         TextField("Service Badge Text", text: $badgeText).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                         TextField("Secondary Carrier Name", text: $carrier2Text)
+                        .cardedRow(style, glass: true)
                         TextField("Secondary Service Badge", text: $badge2Text).disabled(isIOS27)
+                        .cardedRow(style, glass: true)
                     }
                     Section("Numbers") {
 
                         Stepper("Signal Strength: \(signalBars)", value: $signalBars, in: 0...5)
+                        .cardedRow(style, glass: true)
                         Stepper("Secondary Signal Bars: \(signalBars2)", value: $signalBars2, in: 0...5)
+                        .cardedRow(style, glass: true)
                         Stepper("Wi-Fi Signal Strength: \(wifiBars)", value: $wifiBars, in: 0...5)
+                        .cardedRow(style, glass: true)
                         Stepper("Battery Icon Capacity: \(batteryCapacity)%", value: $batteryCapacity, in: 0...100)
+                        .cardedRow(style, glass: true)
                         Stepper("Data Network Type: \(netType)", value: $netType, in: 0...30)
+                        .cardedRow(style, glass: true)
                         Stepper("Secondary Data Network Type: \(netType2)", value: $netType2, in: 0...30)
+                        .cardedRow(style, glass: true)
                         Toggle("Show Numeric Cellular Strength", isOn: $numericCell)
+                        .cardedRow(style, glass: true)
                         Toggle("Show Numeric Wi-Fi Strength", isOn: $numericWifi)
+                        .cardedRow(style, glass: true)
                     }
                     .disabled(isIOS27)
                     Section("Disable icons") {
@@ -116,6 +135,7 @@ struct StatusBarView: View {
                             Toggle("Disable \(item.name)", isOn: Binding(
                                 get: { hiddenItems.contains(item.idx) },
                                 set: { toggleItem(item.idx, $0) }))
+                                .cardedRow(style, glass: true)
                         }
                     }
                     .disabled(isIOS27)
@@ -123,9 +143,11 @@ struct StatusBarView: View {
                         Text("Values stage here exactly like the desktop page. The struct is built from the device's captured base during the restore session.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                            .cardedRow(style, glass: true)
                     }
                     Section {
                         ApplySection()
+                            .cardedRow(style, glass: true)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -172,6 +194,7 @@ struct DaemonsView: View {
                     }
                     Section {
                         ApplySection()
+                            .cardedRow(style, glass: true)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -209,6 +232,7 @@ struct AppleInternalView: View {
                     }
                     Section {
                         ApplySection()
+                            .cardedRow(style, glass: true)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -292,6 +316,7 @@ struct CustomIconsView: View {
             }
         }
         .accessibilityIdentifier(dark ? "ios18-dark-\(icon.slug)" : "ios18-light-\(icon.slug)")
+        .cardedRow(style, glass: true)
     }
 
     var body: some View {
@@ -376,6 +401,7 @@ struct CustomIconsView: View {
                     }
                     Section {
                         ApplySection()
+                            .cardedRow(style, glass: true)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -626,6 +652,7 @@ struct SpringBoardView: View {
                     }
                     Section {
                         ApplySection()
+                            .cardedRow(style, glass: true)
                     }
                 }
                 .scrollContentBackground(.hidden)

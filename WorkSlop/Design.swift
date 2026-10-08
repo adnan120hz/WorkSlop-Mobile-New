@@ -31,6 +31,13 @@ struct CardSurface: ViewModifier {
                 if #available(iOS 26.0, *) {
                     content
                         .glassEffect(.regular.tint(style.tint.opacity(tintOpacity)), in: shape)
+                        .overlay {
+                            // Color wash above the glass: the UI
+                            // tint stays visible even when the
+                            // system flattens glass rendering.
+                            shape.fill(style.tint.opacity(style == .nugget ? 0.06 : 0.09))
+                                .allowsHitTesting(false)
+                        }
                         .overlay { gloss }
                 } else {
                     content
