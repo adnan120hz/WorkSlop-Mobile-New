@@ -325,6 +325,7 @@ struct HomeView: View {
 struct SettingsView: View {
     @State private var importing = false
     @State private var pairingNote: String?
+    @State private var showTunnelInfo = false
     @State private var pairingImported = PairingStore.isImported
     /// The desktop ships three UIs; the picker exists here too and
     /// re-themes the app (tint, brand tile, corners).
@@ -399,10 +400,16 @@ struct SettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-                Section("Pairing file") {
+                Section {
                     Button("Import pairing file (.plist)") { importing = true }
                         .accessibilityIdentifier("import-pairing")
                     LabeledContent("Status", value: pairingImported ? "Imported" : "Not imported")
+                    Button {
+                        showTunnelInfo = true
+                    } label: {
+                        Label("What is the VPN tunnel?", systemImage: "info.circle")
+                    }
+                    .accessibilityIdentifier("tunnel-info")
                     if pairingImported {
                         Button("Delete pairing file", role: .destructive) {
                             do {
@@ -422,9 +429,12 @@ struct SettingsView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
+                } header: {
+                    Text("Pairing file")
                 }
             .scrollContentBackground(.hidden)
             .modifier(ThemedListStyle(style: style))
+            .sheet(isPresented: $showTunnelInfo) { TunnelInfoView() }
             .modifier(ThemedRows(style: style))
             }
             }
@@ -460,6 +470,51 @@ struct SettingsView: View {
                     }
                 case .failure:
                     pairingNote = "Import cancelled."
+                }
+            }
+        }
+    }
+}
+
+/// The (i) explainer for the pairing section: what the loopback VPN
+/// tunnel is (and is not), and App Store apps that can open one.
+struct TunnelInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("What the tunnel is") {
+                    Text("WorkSlop runs on the same iPhone it tweaks. To deliver a payload it must talk to this phone's own lockdownd service, and iOS does not let an app open that connection directly - the traffic has to ride a local VPN tunnel (a utun interface) back into the phone itself.")
+                    Text("This is NOT an internet VPN: no traffic leaves your iPhone, nothing is routed through a server, and your browsing is untouched. The tunnel is only a loopback bridge to this device, and your pairing file is what authenticates the session.")
+                }
+                Section("Apps that can open the tunnel") {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("WireGuard").font(.body.weight(.semibold))
+                        Text("The official WireGuard app (free). With a loopback configuration it opens the tunnel WorkSlop detects - the standard choice.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("StikDebug").font(.body.weight(.semibold))
+                        Text("Free. Creates its own local VPN profile for the same kind of loopback tunnel.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Shadowrocket / Stash").font(.body.weight(.semibold))
+                        Text("Paid alternatives that can also hold a tunnel open, but they are proxy apps - more than this needs.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                Section {
+                    Text("WorkSlop only detects the tunnel; it never sees or routes your internet traffic.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("VPN tunnel")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
             }
         }
