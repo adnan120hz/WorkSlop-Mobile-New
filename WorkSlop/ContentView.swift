@@ -395,9 +395,14 @@ struct SettingsView: View {
                 Section("Credits") {
                     LabeledContent("Developer", value: "Adnan.120hz")
                     LabeledContent("Beta testers", value: "Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
-                    Text("WorkSlop Mobile is its own app — not a port of the desktop build. Tweak payloads follow the key audit of the iOS 26.6.1 firmware.")
+                    Text("WorkSlop Mobile brings the WorkSlop Desktop implementation to the phone: the same firmware-audited payloads and the same routes - Partial restore up to iOS 26, Full backup on iOS 27, and full backup of all data for the S8 set on iOS 26.6.1 - built and staged on this device.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    Link("Nugget by LeminLimez - reference", destination: URL(string: "https://github.com/leminlimez/Nugget")!)
+                    Link("GoldenNugget Mobile - reference", destination: URL(string: "https://github.com/GoldenNugget-Team/GoldenNugget-mobile")!)
+                    Link("WireGuard - VPN tunnel app", destination: URL(string: "https://github.com/WireGuard/wireguard-apple")!)
+                    Link("libimobiledevice - pairing tools", destination: URL(string: "https://github.com/libimobiledevice/libimobiledevice")!)
+                    Link("iOS 18 icon pack by catwithabaloon - Custom Icons artwork", destination: URL(string: "https://github.com/catwithabaloon/iOS-18-icon-pack")!)
                 }
                 Section {
                     Button("Import pairing file (.plist)") { importing = true }
