@@ -125,14 +125,17 @@ struct Feature: Identifiable {
 }
 
 /// Full iOS version of THIS device, patch included ("26.6.1").
+/// Device facts never change while the app runs, so each is read
+/// from the system exactly once per launch instead of on every
+/// view render (these were syscalls/reflection per row before).
 enum DeviceInfoEx {
-    static var fullVersion: String {
+    static let fullVersion: String = {
         let v = ProcessInfo.processInfo.operatingSystemVersion
         return "\(v.majorVersion).\(v.minorVersion).\(v.patchVersion)"
-    }
+    }()
 
     /// Build number of this device ("23G82") via kern.osversion.
-    static var buildNumber: String {
+    static let buildNumber: String = {
         var size = 0
         sysctlbyname("kern.osversion", nil, &size, nil, 0)
         guard size > 0 else { return "-" }
@@ -140,7 +143,7 @@ enum DeviceInfoEx {
         sysctlbyname("kern.osversion", &buf, &size, nil, 0)
         let b = String(cString: buf)
         return b.isEmpty ? "-" : b
-    }
+    }()
 
     /// "iOS 26.6.1 (23G82)" for display.
     static var versionWithBuild: String {
@@ -152,9 +155,36 @@ enum DeviceInfoEx {
 /// on before BOTH the pairing file is imported AND a VPN tunnel is up
 /// on this device — the engine route needs both.
 enum ActivationGate {
-    static var pairingReady: Bool { PairingStore.isImported }
-    static var tunnelReady: Bool { DeviceStatus.vpnTunnelActive() }
-    static var unlocked: Bool { pairingReady && tunnelReady }
+    /// The probe behind the gate is two syscalls (a getifaddrs walk
+    /// plus a file stat). Feature rows used to re-run it on every
+    /// render of every row, so a short-lived snapshot is shared
+    /// instead: one probe serves a whole render pass and the next
+    /// second's. Gate state in this app only ever refreshed when a
+    /// view re-rendered anyway, so a 1s snapshot changes nothing
+    /// the user can see - it just stops the repeated probing.
+    /// (Main-thread UI use only, like the probes themselves.)
+    private struct Snapshot {
+        let pairing: Bool
+        let tunnel: Bool
+        let takenAt: Date
+    }
+
+    private static var snapshot: Snapshot?
+
+    private static func probe() -> Snapshot {
+        if let snap = snapshot, Date().timeIntervalSince(snap.takenAt) < 1 {
+            return snap
+        }
+        let snap = Snapshot(pairing: PairingStore.isImported,
+                            tunnel: DeviceStatus.vpnTunnelActive(),
+                            takenAt: Date())
+        snapshot = snap
+        return snap
+    }
+
+    static var pairingReady: Bool { probe().pairing }
+    static var tunnelReady: Bool { probe().tunnel }
+    static var unlocked: Bool { let s = probe(); return s.pairing && s.tunnel }
 
     static var message: String {
         if !pairingReady && !tunnelReady {
@@ -176,7 +206,7 @@ enum DeviceStatus {
         return m.isEmpty ? "-" : m
     }
 
-    static var model: String {
+    static let model: String = {
         var sys = utsname()
         uname(&sys)
         let bytes = Mirror(reflecting: sys.machine).children
@@ -184,7 +214,7 @@ enum DeviceStatus {
             .filter { $0 != 0 }
             .map { UInt8(bitPattern: $0) }
         return String(decoding: bytes, as: UTF8.self)
-    }
+    }()
 
     /// True while any VPN tunnel interface (utun*) is up with an
     /// address — the state the WireGuard loopback tunnel produces.
@@ -239,20 +269,24 @@ final class SelectionStore: ObservableObject {
     /// Cancel: unstage everything. Nothing is sent anywhere — this is
     /// the pre-apply cancel the Apply menu offers.
     func clear() {
-        staged.removeAll()
-        objectWillChange.send()
+        staged = []
     }
 
     func set(_ id: String, _ on: Bool) {
+        // Build the next set and assign once: one publish and one
+        // UserDefaults write per tap, instead of one per mutation
+        // (plus the manual objectWillChange sends that used to
+        // double every invalidation - @Published already sends).
+        var next = staged
         if on {
-            staged.insert(id)
+            next.insert(id)
             // RTL and LTR layout forces exclude each other, as on desktop.
-            if id == "in-rtl" { staged.remove("in-ltr") }
-            if id == "in-ltr" { staged.remove("in-rtl") }
+            if id == "in-rtl" { next.remove("in-ltr") }
+            if id == "in-ltr" { next.remove("in-rtl") }
         } else {
-            staged.remove(id)
+            next.remove(id)
         }
-        objectWillChange.send()
+        if next != staged { staged = next }
     }
 }
 
@@ -459,7 +493,14 @@ enum FeatureCatalog {
         return seen
     }
 
+    /// Features grouped once at first use (order within each
+    /// section preserved); page bodies ask for their section on
+    /// every render, and re-filtering the whole catalog each time
+    /// was pure waste.
+    private static let bySection: [String: [Feature]] =
+        Dictionary(grouping: all, by: \.section)
+
     static func features(in section: String) -> [Feature] {
-        all.filter { $0.section == section }
+        bySection[section] ?? []
     }
 }

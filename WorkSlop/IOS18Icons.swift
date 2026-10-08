@@ -94,4 +94,9 @@ enum IOS18IconCatalog {
     static func hasDark(slug: String) -> Bool {
         Bundle.main.url(forResource: slug, withExtension: "png", subdirectory: "iOS18Icons/Dark") != nil
     }
+
+    /// The icons that have Dark artwork, filtered once. The Custom
+    /// Icons page used to re-run this filter (a bundle file lookup
+    /// per icon) on every render of its ~100-row list.
+    static let darkIcons: [IOS18Icon] = all.filter { hasDark(slug: $0.slug) }
 }

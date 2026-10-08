@@ -29,7 +29,7 @@ struct CardSurface: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        Group {
+        let surfaced = Group {
             if glass {
                 if #available(iOS 26.0, *) {
                     content
@@ -55,9 +55,15 @@ struct CardSurface: ViewModifier {
                     .overlay { gloss }
             }
         }
-        .shadow(
-            color: shadowed && style != .nugget ? style.tint.opacity(0.10) : .clear,
-            radius: 16, x: 0, y: 6)
+        // Only spend a shadow pass when a shadow can actually be
+        // seen: list rows (shadowed == false) and the whole Nugget
+        // UI used to carry an invisible clear-color shadow, which
+        // still costs an offscreen render per card while scrolling.
+        if shadowed && style != .nugget {
+            surfaced.shadow(color: style.tint.opacity(0.10), radius: 16, x: 0, y: 6)
+        } else {
+            surfaced
+        }
     }
 
     /// Glossy Liquid Glass reflections: a soft white sheen falling
@@ -83,6 +89,10 @@ struct CardSurface: ViewModifier {
                     startPoint: .top, endPoint: .bottom),
                 lineWidth: 1)
         }
+        // The gloss never changes while a card sits still, so the
+        // four gradient layers rasterize into one texture instead
+        // of being re-composited layer by layer on every frame.
+        .drawingGroup()
         .allowsHitTesting(false)
     }
 

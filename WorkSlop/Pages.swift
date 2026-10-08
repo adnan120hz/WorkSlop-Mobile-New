@@ -1,8 +1,90 @@
 import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
+import ImageIO
 
 // MARK: - Status Bar (desktop page parity, staged values)
+
+/// One Status Bar text-field row, its own view: a keystroke used to
+/// re-run the whole Status Bar page body (all ~35 glass rows),
+/// because every @AppStorage value was read in that one body.
+/// Control + modifiers + storage keys are exactly as before; only
+/// the view boundary moved, so a row now refreshes itself alone.
+private struct SBTextRow: View {
+    let title: String
+    @Binding var text: String
+    let style: UIStyle
+    var disabled = false
+
+    var body: some View {
+        TextField(title, text: $text)
+            .disabled(disabled)
+            .cardedRow(style, glass: true)
+    }
+}
+
+/// One Status Bar stepper row (same reasoning as SBTextRow).
+private struct SBStepperRow: View {
+    let label: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    var suffix = ""
+    let style: UIStyle
+
+    var body: some View {
+        Stepper("\(label): \(value)\(suffix)", value: $value, in: range)
+            .cardedRow(style, glass: true)
+    }
+}
+
+/// One Status Bar toggle row (same reasoning as SBTextRow). The
+/// accessibility identifier, when present, sits exactly where it
+/// did inline: after .disabled, before the card surface.
+private struct SBToggleRow: View {
+    let title: String
+    @Binding var isOn: Bool
+    let style: UIStyle
+    var disabled = false
+    var identifier: String? = nil
+
+    var body: some View {
+        if let identifier {
+            Toggle(title, isOn: $isOn)
+                .disabled(disabled)
+                .accessibilityIdentifier(identifier)
+                .cardedRow(style, glass: true)
+        } else {
+            Toggle(title, isOn: $isOn)
+                .disabled(disabled)
+                .cardedRow(style, glass: true)
+        }
+    }
+}
+
+/// One "Disable <status bar icon>" row. It declares the shared
+/// sb-hidden-items storage itself (same key as before), so toggling
+/// one icon no longer rebuilds the whole page.
+private struct SBHideIconRow: View {
+    let idx: Int
+    let name: String
+    let style: UIStyle
+    @AppStorage("sb-hidden-items") private var hiddenItemsRaw = ""
+
+    private var hiddenItems: Set<Int> {
+        Set(hiddenItemsRaw.split(separator: ",").compactMap { Int($0) })
+    }
+
+    var body: some View {
+        Toggle("Disable \(name)", isOn: Binding(
+            get: { hiddenItems.contains(idx) },
+            set: { on in
+                var items = hiddenItems
+                if on { items.insert(idx) } else { items.remove(idx) }
+                hiddenItemsRaw = items.sorted().map(String.init).joined(separator: ",")
+            }))
+            .cardedRow(style, glass: true)
+    }
+}
 
 /// All desktop Status Bar page controls, staged on-device. The values
 /// ride the 0xF68 `statusBarOverrides` struct (field layout
@@ -30,7 +112,7 @@ struct StatusBarView: View {
     @AppStorage("sb-nettype2") private var netType2 = 0
     @AppStorage("sb-numcell") private var numericCell = false
     @AppStorage("sb-numwifi") private var numericWifi = false
-    @AppStorage("sb-hidden-items") private var hiddenItemsRaw = ""
+    // sb-hidden-items lives in SBHideIconRow now (same storage key).
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
@@ -45,16 +127,6 @@ struct StatusBarView: View {
         (26, "CarPlay icon"), (29, "VPN icon"),
         (40, "Liquid Detection Warning icon"), (41, "Voice Control icon"),
     ]
-
-    private var hiddenItems: Set<Int> {
-        Set(hiddenItemsRaw.split(separator: ",").compactMap { Int($0) })
-    }
-
-    private func toggleItem(_ idx: Int, _ on: Bool) {
-        var items = hiddenItems
-        if on { items.insert(idx) } else { items.remove(idx) }
-        hiddenItemsRaw = items.sorted().map(String.init).joined(separator: ",")
-    }
 
     private var feature: Feature {
         FeatureCatalog.features(in: "Status Bar")[0]
@@ -76,15 +148,12 @@ struct StatusBarView: View {
                     }
                     Section {
                         FeatureRow(feature: feature)
-                        Toggle("Enable Status Bar Modifications", isOn: $masterOn)
-                            .cardedRow(style, glass: true)
-                        Toggle("Full Signal Bars (No SIM Visual)", isOn: $fullSignal)
-                            .disabled(!ActivationGate.unlocked || isIOS27)
-                            .cardedRow(style, glass: true)
-                        Toggle("Silly Mode", isOn: $sillyMode)
-                            .disabled(!ActivationGate.unlocked || isIOS27)
-                            .accessibilityIdentifier("sb-enable")
-                            .cardedRow(style, glass: true)
+                        SBToggleRow(title: "Enable Status Bar Modifications", isOn: $masterOn, style: style)
+                        SBToggleRow(title: "Full Signal Bars (No SIM Visual)", isOn: $fullSignal, style: style,
+                                    disabled: !ActivationGate.unlocked || isIOS27)
+                        SBToggleRow(title: "Silly Mode", isOn: $sillyMode, style: style,
+                                    disabled: !ActivationGate.unlocked || isIOS27,
+                                    identifier: "sb-enable")
                     } header: {
                         Text("Master")
                     } footer: {
@@ -93,49 +162,29 @@ struct StatusBarView: View {
                             : "Target: Library/SpringBoard/statusBarOverrides — a fixed 3,944-byte struct, not a plist (firmware-audited on iOS 26.6.1). The full-bars look without a SIM is visual only; it does not restore cellular service.")
                     }
                     Section("Text overrides") {
-                        TextField("Change Status Bar Time Text", text: $timeText).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
-                        TextField("Change Status Bar Date Text", text: $dateText).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
-                        TextField("Change Breadcrumb Text", text: $crumbText).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
-                        TextField("Change Battery Detail Text", text: $batteryDetail).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
-                        TextField("Change Carrier Text", text: $carrierText)
-                        .cardedRow(style, glass: true)
-                        TextField("Change Service Badge Text", text: $badgeText).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
-                        TextField("Secondary Carrier Name", text: $carrier2Text)
-                        .cardedRow(style, glass: true)
-                        TextField("Secondary Service Badge", text: $badge2Text).disabled(isIOS27)
-                        .cardedRow(style, glass: true)
+                        SBTextRow(title: "Change Status Bar Time Text", text: $timeText, style: style, disabled: isIOS27)
+                        SBTextRow(title: "Change Status Bar Date Text", text: $dateText, style: style, disabled: isIOS27)
+                        SBTextRow(title: "Change Breadcrumb Text", text: $crumbText, style: style, disabled: isIOS27)
+                        SBTextRow(title: "Change Battery Detail Text", text: $batteryDetail, style: style, disabled: isIOS27)
+                        SBTextRow(title: "Change Carrier Text", text: $carrierText, style: style)
+                        SBTextRow(title: "Change Service Badge Text", text: $badgeText, style: style, disabled: isIOS27)
+                        SBTextRow(title: "Secondary Carrier Name", text: $carrier2Text, style: style)
+                        SBTextRow(title: "Secondary Service Badge", text: $badge2Text, style: style, disabled: isIOS27)
                     }
                     Section("Numbers") {
-
-                        Stepper("Change Signal Strength: \(signalBars)", value: $signalBars, in: 0...5)
-                        .cardedRow(style, glass: true)
-                        Stepper("Secondary Cellular Signal Bars: \(signalBars2)", value: $signalBars2, in: 0...5)
-                        .cardedRow(style, glass: true)
-                        Stepper("Change Wi-Fi Signal Strength: \(wifiBars)", value: $wifiBars, in: 0...5)
-                        .cardedRow(style, glass: true)
-                        Stepper("Change Battery Icon Capacity: \(batteryCapacity)%", value: $batteryCapacity, in: 0...100)
-                        .cardedRow(style, glass: true)
-                        Stepper("Change Data Network Type: \(netType)", value: $netType, in: 0...30)
-                        .cardedRow(style, glass: true)
-                        Stepper("Secondary Data Network Type: \(netType2)", value: $netType2, in: 0...30)
-                        .cardedRow(style, glass: true)
-                        Toggle("Show Numeric Cellular Strength", isOn: $numericCell)
-                        .cardedRow(style, glass: true)
-                        Toggle("Show Numeric Wi-Fi Strength", isOn: $numericWifi)
-                        .cardedRow(style, glass: true)
+                        SBStepperRow(label: "Change Signal Strength", value: $signalBars, range: 0...5, style: style)
+                        SBStepperRow(label: "Secondary Cellular Signal Bars", value: $signalBars2, range: 0...5, style: style)
+                        SBStepperRow(label: "Change Wi-Fi Signal Strength", value: $wifiBars, range: 0...5, style: style)
+                        SBStepperRow(label: "Change Battery Icon Capacity", value: $batteryCapacity, range: 0...100, suffix: "%", style: style)
+                        SBStepperRow(label: "Change Data Network Type", value: $netType, range: 0...30, style: style)
+                        SBStepperRow(label: "Secondary Data Network Type", value: $netType2, range: 0...30, style: style)
+                        SBToggleRow(title: "Show Numeric Cellular Strength", isOn: $numericCell, style: style)
+                        SBToggleRow(title: "Show Numeric Wi-Fi Strength", isOn: $numericWifi, style: style)
                     }
                     .disabled(isIOS27)
                     Section("Disable icons") {
                         ForEach(Self.hideableItems, id: \.idx) { item in
-                            Toggle("Disable \(item.name)", isOn: Binding(
-                                get: { hiddenItems.contains(item.idx) },
-                                set: { toggleItem(item.idx, $0) }))
-                                .cardedRow(style, glass: true)
+                            SBHideIconRow(idx: item.idx, name: item.name, style: style)
                         }
                     }
                     .disabled(isIOS27)
@@ -259,6 +308,56 @@ struct CustomIconEntry: Identifiable, Codable {
     var imageData: Data? = nil
 }
 
+/// Decoded images for the user's own staged icons, cached by a
+/// cheap sampled fingerprint of the image data. Rows used to run
+/// `UIImage(data:)` on every render - a picked photo becomes a
+/// full-size PNG, so scrolling the list re-decoded megabytes per
+/// frame. Thumbnails are decoded downsampled (the row shows
+/// 44pt); the editor preview keeps a full-size decode, also cached.
+enum EntryImageCache {
+    private static let thumbnails = NSCache<NSString, UIImage>()
+    private static let fullSize = NSCache<NSString, UIImage>()
+
+    private static func fingerprint(_ data: Data) -> NSString {
+        // FNV-1a over the byte count plus head/tail samples: cheap,
+        // and a different image of the exact same size still lands
+        // on a different key unless its edges also match.
+        var hash: UInt64 = 0xcbf29ce484222325
+        func mix(_ byte: UInt8) {
+            hash ^= UInt64(byte)
+            hash &*= 0x100000001b3
+        }
+        for b in data.prefix(4096) { mix(b) }
+        if data.count > 4096 { for b in data.suffix(4096) { mix(b) } }
+        return "\(data.count):\(hash)" as NSString
+    }
+
+    static func thumbnail(_ data: Data) -> UIImage? {
+        let key = fingerprint(data)
+        if let hit = thumbnails.object(forKey: key) { return hit }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            // 44pt row at up to 3x - same pixels the row displays.
+            kCGImageSourceThumbnailMaxPixelSize: 132,
+        ]
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+        else { return UIImage(data: data) }
+        let img = UIImage(cgImage: cg)
+        thumbnails.setObject(img, forKey: key)
+        return img
+    }
+
+    static func full(_ data: Data) -> UIImage? {
+        let key = fingerprint(data)
+        if let hit = fullSize.object(forKey: key) { return hit }
+        guard let img = UIImage(data: data) else { return nil }
+        fullSize.setObject(img, forKey: key)
+        return img
+    }
+}
+
 enum CustomIconStore {
     private static var fileURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -330,7 +429,7 @@ struct CustomIconsView: View {
                         ForEach(entries.indices, id: \.self) { i in
                             HStack(spacing: 12) {
                                 if let data = entries[i].imageData,
-                                   let img = UIImage(data: data) {
+                                   let img = EntryImageCache.thumbnail(data) {
                                     Image(uiImage: img)
                                         .resizable()
                                         .frame(width: 44, height: 44)
@@ -378,7 +477,7 @@ struct CustomIconsView: View {
                         Text("The iOS 18 stock icons from your icon pack. Tap one to add it above with its real name and bundle ID; delivery works like any custom icon.")
                     }
                     Section {
-                        ForEach(IOS18IconCatalog.all.filter { IOS18IconCatalog.hasDark(slug: $0.slug) }) { icon in
+                        ForEach(IOS18IconCatalog.darkIcons) { icon in
                             galleryRow(icon, dark: true)
                         }
                     } header: {
@@ -434,7 +533,7 @@ struct CustomIconsView: View {
                             .autocorrectionDisabled()
                     }
                     Section("Icon image") {
-                        if let data = entries[i].imageData, let img = UIImage(data: data) {
+                        if let data = entries[i].imageData, let img = EntryImageCache.full(data) {
                             Image(uiImage: img)
                                 .resizable()
                                 .scaledToFit()

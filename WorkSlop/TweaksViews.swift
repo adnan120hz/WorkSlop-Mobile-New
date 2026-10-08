@@ -8,12 +8,14 @@ struct ThemedListStyle: ViewModifier {
     func body(content: Content) -> some View {
         // Room under the floating tab bar; contentMargins needs
         // iOS 17, the app floor is iOS 16 - branch for it.
+        // (Was wrapped in AnyView, which erases the List's type and
+        // costs SwiftUI its fast diffing path on every page.)
         if #available(iOS 17.0, *) {
-            AnyView(content
+            content
                 .listStyle(.insetGrouped)
-                .contentMargins(.bottom, 96, for: .scrollContent))
+                .contentMargins(.bottom, 96, for: .scrollContent)
         } else {
-            AnyView(content.listStyle(.insetGrouped))
+            content.listStyle(.insetGrouped)
         }
     }
 }
