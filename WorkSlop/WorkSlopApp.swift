@@ -20,7 +20,14 @@ struct WorkSlopApp: App {
             if iosSupported {
                 ContentView()
                     .sheet(isPresented: $showIntro) { IntroView() }
-                    .onAppear { if !seenIntro { showIntro = true } }
+                    .onAppear {
+                        // Demo/screenshot runs (-DemoIOS26) land
+                        // straight on Home, no intro sheet.
+                        if !seenIntro,
+                           !ProcessInfo.processInfo.arguments.contains("-DemoIOS26") {
+                            showIntro = true
+                        }
+                    }
             } else {
                 UnsupportedIOSView()
             }
