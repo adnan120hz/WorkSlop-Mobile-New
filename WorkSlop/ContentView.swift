@@ -65,7 +65,6 @@ struct HomeView: View {
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
     @State private var engineStatus = "Engine not probed yet - tap Refresh device status."
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
-    @AppStorage("glassUI") private var glassUI = true
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
@@ -84,27 +83,6 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear { pairingImported = PairingStore.isImported }
-        }
-    }
-
-    /// App appearance (iOS 26), exactly as in the reference Home
-    /// screenshot: Liquid Glass UI / No Liquid Glass. The choice is
-    /// read by every card surface in the app, so it really switches
-    /// between full glossy glass and the flat pale look.
-    @ViewBuilder
-    private var appearancePicker: some View {
-        if #available(iOS 26.0, *) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("App appearance (iOS 26)")
-                    .font(.headline)
-                Picker("App appearance", selection: $glassUI) {
-                    Text("Liquid Glass UI").tag(true)
-                    Text("No Liquid Glass").tag(false)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("appearance-picker")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -131,7 +109,6 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 12)
                 .cardSurface(style, glass: true, radius: 22)
-                appearancePicker
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
@@ -194,7 +171,6 @@ struct HomeView: View {
                     .cardSurface(style, glass: true)
                 }
                 .accessibilityIdentifier("home-lg-latest")
-                appearancePicker
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     modernTile("iphone", "Device",
                                "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")
@@ -260,7 +236,6 @@ struct HomeView: View {
                     .cardSurface(style, glass: true)
                 }
                 .accessibilityIdentifier("home-lg-latest")
-                appearancePicker
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     mainTile("iphone", "Device",
                              "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")

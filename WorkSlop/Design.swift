@@ -2,23 +2,17 @@ import SwiftUI
 
 /// WorkSlop brand tokens — mirrors the desktop app: strong (not pale)
 /// blue/white, rounded brand tile with bold white "WS".
-/// The one card surface for the whole app, colored like the
+/// The one card surface for the whole app: FULL Liquid Glass on
+/// iOS 26 (there is no non-glass appearance), colored like the
 /// approved reference UI - a pale wash of the UI tint on big fluid
 /// corners, with a glossy reflection sheen and a soft tinted
 /// shadow so menus read as polished glass, not flat blocks.
-/// The Home "App appearance" choice drives it app-wide:
-/// "Liquid Glass UI" = real iOS 26 glass; "No Liquid Glass" = the
-/// flat pale cards of the reference screenshot. Nugget (dark)
-/// gets the same treatment in slate instead of system-gray fill.
+/// Nugget (dark) gets the same glass in slate instead of a flat
+/// system-gray fill.
 struct CardSurface: ViewModifier {
     let style: UIStyle
     let glass: Bool
     var radius: CGFloat = 32
-
-    /// The user's appearance choice from Home (default: glass).
-    @AppStorage("glassUI") private var glassUI = true
-
-    private var effectiveGlass: Bool { glass && glassUI }
 
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -33,7 +27,7 @@ struct CardSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         Group {
-            if effectiveGlass {
+            if glass {
                 if #available(iOS 26.0, *) {
                     content
                         .glassEffect(.regular.tint(style.tint.opacity(tintOpacity)), in: shape)
@@ -45,11 +39,10 @@ struct CardSurface: ViewModifier {
                         .overlay { gloss }
                 }
             } else {
-                // No Liquid Glass: flat pale cards, matte, exactly
-                // like the reference screenshot.
                 content
                     .background(flatFill)
                     .clipShape(shape)
+                    .overlay { gloss }
             }
         }
         .shadow(
