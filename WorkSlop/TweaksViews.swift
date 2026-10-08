@@ -22,8 +22,8 @@ struct ThemedRows: ViewModifier {
 
     func body(content: Content) -> some View {
         content.listRowBackground(
-            style == .nugget ? nil : style.tint.opacity(0.14))
-            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.20))
+            style == .nugget ? nil : style.tint.opacity(0.08))
+            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.16))
     }
 }
 
@@ -184,7 +184,7 @@ struct FeatureRow: View {
         .listRowBackground(
             style == .nugget
                 ? nil
-                : style.tint.opacity(0.14))
+                : style.tint.opacity(0.08))
         .listRowSeparator(style == .modern ? .hidden : .automatic)
         .sheet(isPresented: $showInfo) {
             NavigationStack {

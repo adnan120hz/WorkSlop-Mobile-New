@@ -18,11 +18,11 @@ struct CardSurface: ViewModifier {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
     }
 
-    /// Pale tint wash, matched to the reference screenshot: clearly
-    /// the UI's color, never saturated and never plain white
-    /// (except Nugget, which is dark by design).
+    /// Transparent glass with only a whisper of the UI tint -
+    /// menus stay see-through and glossy, never solid blocks of
+    /// color (Nugget is dark, so its slate runs a touch deeper).
     private var tintOpacity: Double {
-        style == .nugget ? 0.22 : 0.16
+        style == .nugget ? 0.18 : 0.10
     }
 
     func body(content: Content) -> some View {
