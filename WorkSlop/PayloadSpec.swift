@@ -1360,9 +1360,6 @@ PayloadSpec(
             ]
         ),
 
-        // Desktop: src/tweaks/registry.py:253;
-        // src/tweaks/basic_plist_locations.py:20.
-
         // Desktop: src/tweaks/registry.py:255;
         // src/tweaks/basic_plist_locations.py:27.
         PayloadSpec(
@@ -1523,7 +1520,7 @@ PayloadSpec(
             ]
         ),
 
-        // Desktop: src/tweaks/registry.py:283;
+        // Desktop: src/tweaks/registry.py:281;
         // src/tweaks/basic_plist_locations.py:20.
         PayloadSpec(
             featureID: "lg-disable-specular-motion",
@@ -1538,7 +1535,9 @@ PayloadSpec(
                 )
             ]
         ),
-PayloadSpec(
+        // Desktop: src/tweaks/registry.py:283;
+        // src/tweaks/basic_plist_locations.py:20.
+        PayloadSpec(
             featureID: "lg-disable-specular-everywhere",
             writes: [
                 PayloadWrite(
@@ -1661,9 +1660,6 @@ PayloadSpec(
             ],
             note: "AdvancedPlistTweak factory write; there is no single registry key for this feature."
         ),
-
-        // Desktop: src/tweaks/registry.py:136-137;
-        // src/tweaks/basic_plist_locations.py:10.
 
         // Desktop: src/tweaks/registry.py:139-140;
         // src/tweaks/basic_plist_locations.py:8.
@@ -1841,7 +1837,7 @@ PayloadSpec(
             ]
         ),
 
-        // Desktop: src/tweaks/registry.py:196-211;
+        // Desktop: src/tweaks/registry.py:210-213;
         // src/tweaks/basic_plist_locations.py:45;
         // src/tweaks/tweak_classes.py:118-129.
         PayloadSpec(
@@ -1890,18 +1886,6 @@ PayloadSpec(
                 )
             ]
         ),
-
-        // Desktop: src/tweaks/registry.py:227;
-        // src/tweaks/basic_plist_locations.py:20.
-
-        // Desktop: src/tweaks/registry.py:216;
-        // src/tweaks/basic_plist_locations.py:20.
-
-        // Desktop: src/tweaks/registry.py:231;
-        // src/tweaks/basic_plist_locations.py:22.
-
-        // Desktop: src/tweaks/registry.py:233;
-        // src/tweaks/basic_plist_locations.py:26.
 
         // Desktop: src/tweaks/icon_themes/icon_theme.py:4-21;
         // src/tweaks/icon_themes/icon_themes_tweak.py:38-57,241-277.
