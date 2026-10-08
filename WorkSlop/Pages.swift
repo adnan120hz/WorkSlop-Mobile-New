@@ -260,6 +260,40 @@ struct CustomIconsView: View {
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
+    /// One row of the iOS 18 gallery tables (Light / Dark).
+    @ViewBuilder
+    private func galleryRow(_ icon: IOS18Icon, dark: Bool) -> some View {
+        let added = entries.contains { $0.bundleID == icon.bundleID }
+        Button {
+            guard let data = IOS18IconCatalog.imageData(slug: icon.slug, dark: dark) else { return }
+            let entry = CustomIconEntry(bundleID: icon.bundleID, appName: icon.name, imageData: data)
+            if let i = entries.firstIndex(where: { $0.bundleID == icon.bundleID }) {
+                entries[i] = entry
+            } else {
+                entries.append(entry)
+            }
+            CustomIconStore.save(entries)
+        } label: {
+            HStack(spacing: 12) {
+                if let data = IOS18IconCatalog.imageData(slug: icon.slug, dark: dark),
+                   let img = UIImage(data: data) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(icon.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                    Text(icon.bundleID).font(.caption2).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: added ? "checkmark.circle.fill" : "plus.circle")
+                    .foregroundStyle(added ? Color.green : Color.accentColor)
+            }
+        }
+        .accessibilityIdentifier(dark ? "ios18-dark-\(icon.slug)" : "ios18-light-\(icon.slug)")
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -307,8 +341,26 @@ struct CustomIconsView: View {
                     } footer: {
                         Text("Pick an image, fill the app name and its bundle ID (for example com.apple.mobilesafari). Staged icons are written as Home Screen web clips by the same restore payload as the desktop icon themes.")
                     }
+                    Section {
+                        ForEach(IOS18IconCatalog.all) { icon in
+                            galleryRow(icon, dark: false)
+                        }
+                    } header: {
+                        Text("iOS 18 icons — Light")
+                    } footer: {
+                        Text("The iOS 18 stock icons from your icon pack. Tap one to add it above with its real name and bundle ID; delivery works like any custom icon.")
+                    }
+                    Section {
+                        ForEach(IOS18IconCatalog.all.filter { IOS18IconCatalog.hasDark(slug: $0.slug) }) { icon in
+                            galleryRow(icon, dark: true)
+                        }
+                    } header: {
+                        Text("iOS 18 icons — Dark")
+                    } footer: {
+                        Text("The same apps in their iOS 18 dark-mode artwork.")
+                    }
                     Section("Icon packs") {
-                        Text("Manual only: download icon packs anywhere you like, then add the images below one by one - image (JPEG / PNG / RAW), app name and bundle ID are all required.")
+                        Text("Your own images work too: add them above one by one - image, app name and bundle ID.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .cardedRow(style, glass: true)

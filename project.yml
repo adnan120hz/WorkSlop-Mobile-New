@@ -41,6 +41,8 @@ targets:
                 - IconGray
     sources:
       - path: WorkSlop
+      - path: WorkSlop/iOS18Icons
+        type: folder
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.adnan120hz.workslop
