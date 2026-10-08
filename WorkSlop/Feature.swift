@@ -8,6 +8,18 @@ import Foundation
 enum DeliveryRoute: String {
     case partialRestore = "Partial restore"
     case fullBackup = "Full backup → modify → restore"
+
+    /// What the user sees on THIS device. The partial (sparse) restore
+    /// exists only up to the latest iOS 26; on iOS 27 every route rides
+    /// the full backup -> modify -> restore flow, like the desktop -
+    /// so the words "Partial restore" never appear on iOS 27.
+    var displayName: String {
+        if self == .partialRestore,
+           ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
+            return DeliveryRoute.fullBackup.rawValue
+        }
+        return rawValue
+    }
     /// The desktop's targeted container backup exists only for the
     /// PosterBoard Configurations (database) mode, which mobile does
     /// not offer; mobile PosterBoard is Descriptors = partial restore.

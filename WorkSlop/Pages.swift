@@ -431,7 +431,7 @@ struct PosterBoardView: View {
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("Descriptors ride a plain partial restore on desktop - no backup runs for this mode. Up to 5 files ride one apply (desktop cap).")
+                        Text("Descriptors ride the \(DeliveryRoute.partialRestore.displayName) route, like the desktop Descriptors mode. Up to 5 files ride one apply (desktop cap).")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .cardedRow(style, glass: true)
@@ -471,7 +471,7 @@ struct PosterBoardView: View {
                     } header: {
                         Text("Delivery modes")
                     } footer: {
-                        Text("Both tables deliver by partial restore, like the desktop Descriptors mode. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
+                        Text("Both tables deliver by \(DeliveryRoute.partialRestore.displayName), like the desktop Descriptors mode. Nothing is delivered from this page; files join the staged set for the engine, when it runs.")
                     }
                 }
                 .scrollContentBackground(.hidden)

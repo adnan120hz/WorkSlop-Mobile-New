@@ -5,15 +5,14 @@ struct WorkSlopApp: App {
     @AppStorage("seenIntro") private var seenIntro = false
     @State private var showIntro = false
 
-    /// iOS line this build supports, patch included in the check via
-    /// major/minor gates: every supported tweak window lives inside
-    /// iOS builds inside the desktop 16.0 to <27.0 support line.
-    /// Anything outside it gets the
-    /// full-screen notice instead of an app that cannot serve them.
+    /// iOS line this build supports: iOS 16 through 27. Up to the
+    /// latest iOS 26 the tweaks ride the partial restore; on iOS 27
+    /// everything rides the full backup -> modify -> restore flow,
+    /// like the desktop. Anything outside the line gets the
+    /// full-screen notice instead of an app that cannot serve it.
     private var iosSupported: Bool {
-        // Desktop support line (is_version_supported): 16.0 <= v < 27.0.
         let v = DeviceInfo.iosVersion
-        return (v.major == 16) || (17...26).contains(v.major)
+        return (16...27).contains(v.major)
     }
 
     var body: some Scene {
@@ -42,7 +41,7 @@ struct UnsupportedIOSView: View {
                 Text("iOS version not supported")
                     .font(.title.weight(.bold))
                     .multilineTextAlignment(.center)
-                Text("This device is running iOS \(DeviceInfoEx.fullVersion). WorkSlop 14.0 supports iOS 16.0 through 26.x.")
+                Text("This device is running iOS \(DeviceInfoEx.fullVersion). WorkSlop 14.0 supports iOS 16.0 through 27.x.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

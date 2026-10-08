@@ -57,7 +57,7 @@ struct FeatureRow: View {
                 lines.append(note)
             }
         }
-        lines.append("Route: \(feature.route.rawValue). Support: \(feature.window.label).")
+        lines.append("Route: \(feature.route.displayName). Support: \(feature.window.label).")
         lines.append("Sending needs the on-device restore engine, which is not verified on iOS 26.6.1 yet — staging only for now.")
         return lines.joined(separator: "\n\n")
     }
@@ -133,7 +133,7 @@ struct FeatureRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
-                            StatusChip(text: feature.route.rawValue)
+                            StatusChip(text: feature.route.displayName)
                             if let chip = availability.chipText {
                                 StatusChip(text: chip, warn: true)
                             }
@@ -162,7 +162,7 @@ struct FeatureRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 6) {
-                            StatusChip(text: feature.route.rawValue)
+                            StatusChip(text: feature.route.displayName)
                             if let chip = availability.chipText {
                                 StatusChip(text: chip, warn: true)
                             }
@@ -242,7 +242,7 @@ struct LiquidGlassView: View {
                 } header: {
                     Text("Liquid Glass")
                 } footer: {
-                    Text("The regular set rides partial restore, same as on desktop.")
+                    Text("The regular set rides the \(DeliveryRoute.partialRestore.displayName) route, same as on desktop.")
                 }
 
                 Section {

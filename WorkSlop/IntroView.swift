@@ -34,7 +34,7 @@ struct IntroView: View {
                         "Liquid Glass (regular set): iOS 26.0 and later.",
                         "Liquid Glass iOS 26.6.1 RC S8: iOS 26.0 and later.",
                         "Status Bar classic options: iOS 26.x (iOS 27 keeps carrier text only).",
-                        "Everything rides the desktop 16.0 to <27.0 support line, gated per tweak on its page - a tweak is only locked when this iOS is outside its range. Status Bar classic options are iOS 26.x; iOS 27 keeps carrier text only.",
+                        "Everything rides the desktop support line, gated per tweak on its page - a tweak is only locked when this iOS is outside its range. Up to the latest iOS 26 tweaks ride the partial restore; on iOS 27 everything rides the full backup \u2192 modify \u2192 restore flow. Status Bar classic options are iOS 26.x; iOS 27 keeps carrier text only.",
                         "Devices below iOS 16.0 or on iOS 27+ get a full-screen \"iOS version not supported\" notice instead of this app.",
                     ])
                 .tag(1)
