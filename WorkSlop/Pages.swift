@@ -299,8 +299,7 @@ struct CustomIconsView: View {
             CustomIconStore.save(entries)
         } label: {
             HStack(spacing: 12) {
-                if let data = IOS18IconCatalog.imageData(slug: icon.slug, dark: dark),
-                   let img = UIImage(data: data) {
+                if let img = IOS18IconCatalog.image(slug: icon.slug, dark: dark) {
                     Image(uiImage: img)
                         .resizable()
                         .frame(width: 40, height: 40)

@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 /// iOS 18 stock icon gallery (from the user's icon pack,
 /// "iOS 18 App Icons by catwithabaloon"). Two tables on the Custom
@@ -75,6 +75,20 @@ enum IOS18IconCatalog {
         guard let url = Bundle.main.url(forResource: slug, withExtension: "png", subdirectory: sub)
         else { return nil }
         return try? Data(contentsOf: url)
+    }
+
+    /// Decoded gallery thumbnails, cached for the whole session.
+    /// The gallery lists ~100 rows; decoding PNG data on every
+    /// render was a real source of scroll lag.
+    private static let imageCache = NSCache<NSString, UIImage>()
+
+    static func image(slug: String, dark: Bool) -> UIImage? {
+        let key = (dark ? "d:" : "l:") + slug as NSString
+        if let hit = imageCache.object(forKey: key) { return hit }
+        guard let data = imageData(slug: slug, dark: dark),
+              let img = UIImage(data: data) else { return nil }
+        imageCache.setObject(img, forKey: key)
+        return img
     }
 
     static func hasDark(slug: String) -> Bool {

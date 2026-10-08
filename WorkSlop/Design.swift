@@ -13,6 +13,9 @@ struct CardSurface: ViewModifier {
     let style: UIStyle
     let glass: Bool
     var radius: CGFloat = 32
+    /// Big soft shadows are for hero cards; list rows skip them
+    /// (dozens of blurred shadows per screen = scroll lag).
+    var shadowed: Bool = true
 
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -53,7 +56,7 @@ struct CardSurface: ViewModifier {
             }
         }
         .shadow(
-            color: style == .nugget ? .clear : style.tint.opacity(0.10),
+            color: shadowed && style != .nugget ? style.tint.opacity(0.10) : .clear,
             radius: 16, x: 0, y: 6)
     }
 
@@ -101,7 +104,7 @@ extension View {
     func cardedRow(_ style: UIStyle, glass: Bool) -> some View {
         padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .modifier(CardSurface(style: style, glass: glass))
+            .modifier(CardSurface(style: style, glass: glass, shadowed: false))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
@@ -221,14 +224,10 @@ struct AppleDriftBackground: View {
     private let motes: [Mote] = [
         Mote(x: 0.12, y: 0.10, size: 64, delay: 0.0, duration: 9, travel: 22, spin: 7),
         Mote(x: 0.82, y: 0.07, size: 42, delay: 1.2, duration: 11, travel: 30, spin: -9),
-        Mote(x: 0.55, y: 0.28, size: 30, delay: 0.6, duration: 8, travel: 18, spin: 11),
         Mote(x: 0.25, y: 0.42, size: 48, delay: 2.0, duration: 12, travel: 26, spin: -6),
         Mote(x: 0.88, y: 0.48, size: 72, delay: 0.3, duration: 10, travel: 20, spin: 5),
-        Mote(x: 0.08, y: 0.66, size: 36, delay: 1.6, duration: 9, travel: 28, spin: -12),
         Mote(x: 0.45, y: 0.72, size: 58, delay: 0.9, duration: 13, travel: 16, spin: 8),
-        Mote(x: 0.72, y: 0.86, size: 40, delay: 2.4, duration: 10, travel: 24, spin: -7),
         Mote(x: 0.20, y: 0.92, size: 52, delay: 1.1, duration: 11, travel: 20, spin: 10),
-        Mote(x: 0.95, y: 0.24, size: 28, delay: 0.5, duration: 8, travel: 15, spin: -10),
     ]
 
     var body: some View {
