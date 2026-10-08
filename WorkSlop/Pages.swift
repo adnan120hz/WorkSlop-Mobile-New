@@ -394,7 +394,10 @@ struct PosterBoardView: View {
     @State private var note: String?
     @State private var files: [String] = TendiesStore.list(kind: "Tendies")
     @State private var templateFiles: [String] = TendiesStore.list(kind: "Templates")
-    @State private var importingTemplates = false
+    /// Which table the single importer serves ("Tendies"/"Templates").
+    /// One importer only: two .fileImporter modifiers on one view
+    /// conflict and the first never presents.
+    @State private var importKind = "Tendies"
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
@@ -407,7 +410,7 @@ struct PosterBoardView: View {
                         LockBanner()
                     }
                     Section {
-                        Button("Import PosterBoard file (.tendies)") { importing = true }
+                        Button("Import PosterBoard file (.tendies)") { importKind = "Tendies"; importing = true }
                             .accessibilityIdentifier("pb-import")
                             .cardedRow(style, glass: glassUI)
                         if files.isEmpty {
@@ -438,7 +441,7 @@ struct PosterBoardView: View {
                         Text("PosterBoard (.tendies)")
                     }
                     Section {
-                        Button("Import Template file (.batter)") { importingTemplates = true }
+                        Button("Import Template file (.batter)") { importKind = "Templates"; importing = true }
                             .accessibilityIdentifier("themes-template-import")
                             .cardedRow(style, glass: glassUI)
                         if templateFiles.isEmpty {
@@ -478,35 +481,27 @@ struct PosterBoardView: View {
                 .modifier(ThemedRows(style: style))
             }
             .navigationTitle("Themes")
-            .fileImporter(isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "tendies") ?? .data],
+            .fileImporter(isPresented: $importing,
+                          allowedContentTypes: [UTType(filenameExtension: importKind == "Tendies" ? "tendies" : "batter") ?? .data],
                           allowsMultipleSelection: true) { result in
+                let kind = importKind
+                let ext = kind == "Tendies" ? "tendies" : "batter"
                 switch result {
                 case .success(let urls):
                     var imported = 0
                     for url in urls {
-                        guard url.pathExtension.lowercased() == "tendies" else { continue }
+                        guard url.pathExtension.lowercased() == ext else { continue }
                         let scoped = url.startAccessingSecurityScopedResource()
                         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        if TendiesStore.save(url: url, kind: "Tendies") { imported += 1 }
+                        if TendiesStore.save(url: url, kind: kind) { imported += 1 }
                     }
                     files = TendiesStore.list(kind: "Tendies")
+                    templateFiles = TendiesStore.list(kind: "Templates")
                     note = imported > 0
-                        ? "Imported \(imported) .tendies file(s). Staged for the next engine apply."
-                        : "Nothing imported - this table takes .tendies only."
+                        ? "Imported \(imported) .\(ext) file(s) into \(kind). Staged for the next engine apply."
+                        : "Nothing imported - this table takes .\(ext) only."
                 case .failure:
                     note = "Import cancelled."
-                }
-            }
-            .fileImporter(isPresented: $importingTemplates, allowedContentTypes: [UTType(filenameExtension: "batter") ?? .data],
-                          allowsMultipleSelection: true) { result in
-                if case .success(let urls) = result {
-                    for url in urls {
-                        guard url.pathExtension.lowercased() == "batter" else { continue }
-                        let scoped = url.startAccessingSecurityScopedResource()
-                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        _ = TendiesStore.save(url: url, kind: "Templates")
-                    }
-                    templateFiles = TendiesStore.list(kind: "Templates")
                 }
             }
         }

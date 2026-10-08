@@ -170,6 +170,7 @@ struct BrandTile: View {
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
 struct AppleDriftBackground: View {
+    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
@@ -195,6 +196,19 @@ struct AppleDriftBackground: View {
     ]
 
     var body: some View {
+        if !glassUI {
+            // Flat pre-glass backdrop: one solid wash, no drift.
+            ZStack {
+                Color(UIColor.systemBackground)
+                tint.opacity(0.05)
+            }
+            .ignoresSafeArea()
+        } else {
+            glassBody
+        }
+    }
+
+    private var glassBody: some View {
         GeometryReader { geo in
             ZStack {
                 if style.showsDrift {

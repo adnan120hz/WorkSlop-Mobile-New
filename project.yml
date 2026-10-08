@@ -13,6 +13,21 @@ targets:
         CFBundleName: WorkSlop
         CFBundleDisplayName: WorkSlop
         UILaunchScreen: {}
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.adnan120hz.workslop.tendies
+            UTTypeDescription: PosterBoard tendies package
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - tendies
+          - UTTypeIdentifier: com.adnan120hz.workslop.batter
+            UTTypeDescription: PosterBoard batter template
+            UTTypeConformsTo:
+              - public.data
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - batter
         CFBundleIcons:
           CFBundleAlternateIcons:
             IconPurple:
