@@ -14,15 +14,16 @@ struct ThemedListStyle: ViewModifier {
     }
 }
 
-/// Row backgrounds follow the UI color (purple/blue) so no menu
-/// shows plain white blocks; Nugget keeps the system background.
+/// Row backgrounds follow the UI color (purple/blue) as the same
+/// pale wash the cards use, so no menu shows plain white blocks
+/// and nothing turns saturated; Nugget keeps the system background.
 struct ThemedRows: ViewModifier {
     let style: UIStyle
 
     func body(content: Content) -> some View {
         content.listRowBackground(
-            style == .nugget ? nil : style.tint.opacity(0.28))
-            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.35))
+            style == .nugget ? nil : style.tint.opacity(0.14))
+            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.20))
     }
 }
 
@@ -183,7 +184,7 @@ struct FeatureRow: View {
         .listRowBackground(
             style == .nugget
                 ? nil
-                : style.tint.opacity(0.10))
+                : style.tint.opacity(0.14))
         .listRowSeparator(style == .modern ? .hidden : .automatic)
         .sheet(isPresented: $showInfo) {
             NavigationStack {

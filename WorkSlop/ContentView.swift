@@ -108,8 +108,7 @@ struct HomeView: View {
                     nuggetRow("checklist", "Staged tweaks", "\(selection.staged.count) selected")
                 }
                 .padding(.horizontal, 12)
-                .background(Color(UIColor.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .cardSurface(style, glass: true, radius: 22)
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
@@ -124,8 +123,7 @@ struct HomeView: View {
                         Image(systemName: "chevron.right").foregroundStyle(.secondary)
                     }
                     .padding(12)
-                    .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .cardSurface(style, glass: true, radius: 22)
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
@@ -152,8 +150,8 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: 16) {
                 VStack(spacing: 8) {
-                    BrandTile(size: 68)
-                    Text("WorkSlop").font(.title2.weight(.bold))
+                    BrandTile(size: 84)
+                    Text("WorkSlop").font(.title.weight(.bold))
                     Text("v14.0 • Mobile").font(.caption).foregroundStyle(.secondary)
                 }
                 NavigationLink {
@@ -200,8 +198,8 @@ struct HomeView: View {
             Text(value).font(.caption).foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
-        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
+        .padding(14)
         .cardSurface(style, glass: true)
     }
 
@@ -316,8 +314,8 @@ struct HomeView: View {
             Text(value).font(.caption).foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
-        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
+        .padding(14)
         .cardSurface(style, glass: true)
     }
 }

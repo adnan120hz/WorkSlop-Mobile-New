@@ -2,32 +2,78 @@ import SwiftUI
 
 /// WorkSlop brand tokens — mirrors the desktop app: strong (not pale)
 /// blue/white, rounded brand tile with bold white "WS".
-/// Card surface for the app-wide appearance choice. ON: real
-/// Liquid Glass from the iOS 26 SDK. OFF: the flat card look of the
-/// pre-glass build - solid, no material, no refraction.
+/// The one card surface for the whole app: FULL Liquid Glass on
+/// iOS 26 (there is no non-glass appearance), colored like the
+/// approved reference UI - a pale wash of the UI tint on big fluid
+/// corners, with a glossy reflection sheen and a soft tinted
+/// shadow so menus read as polished glass, not flat blocks.
+/// Nugget (dark) gets the same glass in slate instead of a flat
+/// system-gray fill.
 struct CardSurface: ViewModifier {
     let style: UIStyle
     let glass: Bool
-    var radius: CGFloat = 24
+    var radius: CGFloat = 32
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+    }
+
+    /// Pale tint wash, matched to the reference screenshot: clearly
+    /// the UI's color, never saturated and never plain white
+    /// (except Nugget, which is dark by design).
+    private var tintOpacity: Double {
+        style == .nugget ? 0.22 : 0.16
+    }
 
     func body(content: Content) -> some View {
         Group {
             if glass {
                 if #available(iOS 26.0, *) {
-                    content.glassEffect(
-                        .regular.tint(style.tint.opacity(0.30)),
-                        in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                    content
+                        .glassEffect(.regular.tint(style.tint.opacity(tintOpacity)), in: shape)
+                        .overlay { gloss }
                 } else {
-                    content.background(
-                        .ultraThinMaterial,
-                        in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                    content
+                        .background(.ultraThinMaterial, in: shape)
+                        .overlay { shape.fill(style.tint.opacity(0.08)) }
+                        .overlay { gloss }
                 }
             } else {
                 content
                     .background(flatFill)
-                    .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                    .clipShape(shape)
+                    .overlay { gloss }
             }
         }
+        .shadow(
+            color: style == .nugget ? .clear : style.tint.opacity(0.10),
+            radius: 16, x: 0, y: 6)
+    }
+
+    /// Glossy Liquid Glass reflections: a soft white sheen falling
+    /// from the top edge, a bright rim on the upper border, and a
+    /// faint tinted shade at the bottom - the polished-glass look.
+    private var gloss: some View {
+        ZStack {
+            shape.fill(
+                LinearGradient(
+                    colors: [Color.white.opacity(style == .nugget ? 0.14 : 0.22),
+                             Color.white.opacity(0.04),
+                             Color.clear],
+                    startPoint: .top, endPoint: .center))
+            shape.fill(
+                LinearGradient(
+                    colors: [Color.clear, style.tint.opacity(0.05)],
+                    startPoint: .center, endPoint: .bottom))
+            shape.strokeBorder(
+                LinearGradient(
+                    colors: [Color.white.opacity(style == .nugget ? 0.28 : 0.55),
+                             Color.white.opacity(0.10),
+                             style.tint.opacity(0.14)],
+                    startPoint: .top, endPoint: .bottom),
+                lineWidth: 1)
+        }
+        .allowsHitTesting(false)
     }
 
     private var flatFill: Color {
@@ -39,7 +85,7 @@ struct CardSurface: ViewModifier {
 
 extension View {
     /// Padded card using the current appearance (glass or flat).
-    func cardSurface(_ style: UIStyle, glass: Bool, radius: CGFloat = 24) -> some View {
+    func cardSurface(_ style: UIStyle, glass: Bool, radius: CGFloat = 32) -> some View {
         modifier(CardSurface(style: style, glass: glass, radius: radius))
     }
 
@@ -182,8 +228,11 @@ struct AppleDriftBackground: View {
         GeometryReader { geo in
             ZStack {
                 if style.showsDrift {
+                    // Near-white tinted backdrop, like the reference
+                    // UI: the UI color as a whisper, not a wash.
+                    Color(UIColor.systemBackground)
                     LinearGradient(
-                        colors: [tint.opacity(0.12), tint.opacity(0.04)],
+                        colors: [tint.opacity(0.10), tint.opacity(0.03)],
                         startPoint: .top, endPoint: .bottom)
                 } else {
                     LinearGradient(
@@ -195,7 +244,7 @@ struct AppleDriftBackground: View {
                     let m = motes[i]
                     Image(systemName: "apple.logo")
                         .font(.system(size: m.size))
-                        .foregroundStyle(Color.white.opacity(0.35))
+                        .foregroundStyle(Color.white.opacity(0.16))
                         .position(x: geo.size.width * m.x,
                                   y: geo.size.height * m.y)
                         .offset(y: drift && !reduceMotion ? -m.travel : m.travel)

@@ -12,11 +12,16 @@ import SwiftUI
 /// iOS 26.6.1 yet — the intro says so instead of promising it.
 struct IntroView: View {
     @AppStorage("seenIntro") private var seenIntro = false
+    @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @Environment(\.dismiss) private var dismiss
     @State private var page = 0
 
+    private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
+
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
+            AppleDriftBackground()
+            VStack(spacing: 0) {
             TabView(selection: $page) {
                 introPage(
                     icon: nil,
@@ -65,6 +70,7 @@ struct IntroView: View {
             .controlSize(.large)
             .padding()
             .accessibilityIdentifier("intro-continue")
+            }
         }
     }
 
@@ -90,7 +96,9 @@ struct IntroView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
-                .padding(.horizontal, 28)
+                .padding(16)
+                .cardSurface(style, glass: true)
+                .padding(.horizontal, 20)
                 Spacer(minLength: 24)
             }
         }
