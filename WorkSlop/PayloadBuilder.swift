@@ -99,20 +99,27 @@ enum PayloadBuilder {
 
         var files: [BuiltFile] = []
 
-        // Custom Icons delivery: one WebClip folder per complete
-        // entry (PNG image + app name + bundle ID all required).
+        // Custom Icons delivery (desktop icon_themes_tweak.py):
+        // one WebClip folder per entry with a bundle ID. The desktop
+        // sanitizes the display name by turning "," and "/" into
+        // spaces, an empty name is legal (hidden label), a later theme
+        // for the same bundle REPLACES the earlier one, Info.plist is
+        // always written, and icon.png only when icon data exists.
         if staged.contains("custom-icons") {
-            let complete = iconEntries.filter {
-                !$0.appName.isEmpty && !$0.bundleID.isEmpty && $0.imageData != nil
+            var byBundle: [String: CustomIconEntry] = [:]
+            var order: [String] = []
+            for entry in iconEntries where !entry.bundleID.isEmpty {
+                if byBundle[entry.bundleID] == nil { order.append(entry.bundleID) }
+                byBundle[entry.bundleID] = entry // replace, like desktop add_theme
             }
-            if complete.isEmpty {
-                warnings.append("custom-icons: no complete icon entries (image, name and bundle ID are all required) - nothing staged.")
+            if order.isEmpty {
+                warnings.append("custom-icons: no entries with a bundle ID - nothing staged.")
             }
-            for entry in complete {
+            for bundle in order {
+                let entry = byBundle[bundle]!
                 let safeName = entry.appName
-                    .replacingOccurrences(of: "/", with: "-")
-                    .replacingOccurrences(of: ",", with: "-")
-                    .replacingOccurrences(of: ":", with: "-")
+                    .replacingOccurrences(of: ",", with: " ")
+                    .replacingOccurrences(of: "/", with: " ")
                 let folder = "Library/WebClips/Cowabunga_\(entry.bundleID),\(safeName).webclip"
                 // Cowabunga makeInfoPlist, verbatim (icon_themes_tweak.py:39-57).
                 let plist: [String: Any] = [
@@ -128,7 +135,7 @@ enum PayloadBuilder {
                     "IsAppClip": false,
                     "Orientations": 0,
                     "ScenelessBackgroundLaunch": false,
-                    "Title": entry.appName,
+                    "Title": safeName,
                     "WebClipStatusBarStyle": "UIWebClipStatusBarStyleDefault",
                     "RemovalDisallowed": false,
                 ]
@@ -148,10 +155,24 @@ enum PayloadBuilder {
                     files.append(BuiltFile(
                         domain: "HomeDomain", restorePath: folder + "/icon.png",
                         keys: ["icon.png (\(png.count) bytes)"], url: url))
+                } else {
+                    warnings.append("custom-icons: skipped icon file for \(entry.bundleID) (no icon data) - Info.plist still staged, like desktop.")
                 }
             }
-            for entry in iconEntries where entry.imageData == nil || entry.appName.isEmpty || entry.bundleID.isEmpty {
-                warnings.append("custom-icons: skipped an incomplete entry (image, name and bundle ID are all required).")
+        }
+
+        // PosterBoard reset (desktop posterboard_tweak.py): real
+        // zero-byte files for the descriptor folders + GalleryCache,
+        // structure version resolved by PayloadSpecCatalog.pbStructure.
+        if staged.contains("pb-reset"),
+           let resetSpec = PayloadSpecCatalog.all.first(where: { $0.featureID == "pb-reset" }) {
+            for write in resetSpec.writes {
+                let url = dir.appendingPathComponent(
+                    write.restorePath.replacingOccurrences(of: "/", with: "_") + ".empty")
+                try? Data().write(to: url, options: .atomic)
+                files.append(BuiltFile(
+                    domain: write.domain.rawValue, restorePath: write.restorePath,
+                    keys: ["<empty file, 0 bytes>"], url: url))
             }
         }
 

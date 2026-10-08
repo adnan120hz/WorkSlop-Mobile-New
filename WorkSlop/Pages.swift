@@ -43,7 +43,7 @@ struct StatusBarView: View {
         (18, "Alarm icon"), (21, "Location icon"),
         (22, "Rotation Lock icon"), (24, "AirPlay icon"),
         (26, "CarPlay icon"), (29, "VPN icon"),
-        (40, "Liquid Detection icon"), (41, "Voice Control icon"),
+        (40, "Liquid Detection Warning icon"), (41, "Voice Control icon"),
     ]
 
     private var hiddenItems: Set<Int> {
@@ -60,6 +60,12 @@ struct StatusBarView: View {
         FeatureCatalog.features(in: "Status Bar")[0]
     }
 
+    /// iOS 27: the classic overrides file is not read anymore; only
+    /// the carrier names survive, riding StatusBarOverrides.archive
+    /// (desktop apply_ios27_tweak) - the page locks everything else,
+    /// exactly like the desktop page hides them.
+    private var isIOS27: Bool { DeviceInfo.iosVersion.major >= 27 }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -72,26 +78,29 @@ struct StatusBarView: View {
                         FeatureRow(feature: feature)
                         Toggle("Enable Status Bar Modifications", isOn: $masterOn)
                         Toggle("Full Signal Bars (No SIM Visual)", isOn: $fullSignal)
-                            .disabled(!ActivationGate.unlocked)
+                            .disabled(!ActivationGate.unlocked || isIOS27)
                         Toggle("Silly Mode", isOn: $sillyMode)
-                            .disabled(!ActivationGate.unlocked)
+                            .disabled(!ActivationGate.unlocked || isIOS27)
                             .accessibilityIdentifier("sb-enable")
                     } header: {
                         Text("Master")
                     } footer: {
-                        Text("Target: Library/SpringBoard/statusBarOverrides — a fixed 3,944-byte struct, not a plist (firmware-audited on iOS 26.6.1). The full-bars look without a SIM is visual only; it does not restore cellular service.")
+                        Text(isIOS27
+                            ? "On iOS 27 the classic statusBarOverrides file is no longer read. Only the carrier names below still apply: they ride StatusBarOverrides.archive, which SpringBoard unarchives itself (desktop apply_ios27_tweak)."
+                            : "Target: Library/SpringBoard/statusBarOverrides — a fixed 3,944-byte struct, not a plist (firmware-audited on iOS 26.6.1). The full-bars look without a SIM is visual only; it does not restore cellular service.")
                     }
                     Section("Text overrides") {
-                        TextField("Status Bar Time Text", text: $timeText)
-                        TextField("Date Text", text: $dateText)
-                        TextField("Breadcrumb Text", text: $crumbText)
-                        TextField("Battery Detail Text", text: $batteryDetail)
+                        TextField("Status Bar Time Text", text: $timeText).disabled(isIOS27)
+                        TextField("Date Text", text: $dateText).disabled(isIOS27)
+                        TextField("Breadcrumb Text", text: $crumbText).disabled(isIOS27)
+                        TextField("Battery Detail Text", text: $batteryDetail).disabled(isIOS27)
                         TextField("Carrier Text", text: $carrierText)
-                        TextField("Service Badge Text", text: $badgeText)
+                        TextField("Service Badge Text", text: $badgeText).disabled(isIOS27)
                         TextField("Secondary Carrier Name", text: $carrier2Text)
-                        TextField("Secondary Service Badge", text: $badge2Text)
+                        TextField("Secondary Service Badge", text: $badge2Text).disabled(isIOS27)
                     }
                     Section("Numbers") {
+
                         Stepper("Signal Strength: \(signalBars)", value: $signalBars, in: 0...5)
                         Stepper("Secondary Signal Bars: \(signalBars2)", value: $signalBars2, in: 0...5)
                         Stepper("Wi-Fi Signal Strength: \(wifiBars)", value: $wifiBars, in: 0...5)
@@ -101,13 +110,15 @@ struct StatusBarView: View {
                         Toggle("Show Numeric Cellular Strength", isOn: $numericCell)
                         Toggle("Show Numeric Wi-Fi Strength", isOn: $numericWifi)
                     }
-                    Section("Hide icons") {
+                    .disabled(isIOS27)
+                    Section("Disable icons") {
                         ForEach(Self.hideableItems, id: \.idx) { item in
-                            Toggle("Hide \(item.name)", isOn: Binding(
+                            Toggle("Disable \(item.name)", isOn: Binding(
                                 get: { hiddenItems.contains(item.idx) },
                                 set: { toggleItem(item.idx, $0) }))
                         }
                     }
+                    .disabled(isIOS27)
                     Section {
                         Text("Values stage here exactly like the desktop page. The struct is built from the device's captured base during the restore session.")
                             .font(.footnote)

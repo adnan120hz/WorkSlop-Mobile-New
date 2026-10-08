@@ -77,7 +77,12 @@ struct Feature: Identifiable {
     let window: IOSWindow
 
     func availability(for ios: (major: Int, minor: Int)) -> Availability {
-        window.contains(ios)
+        // Desktop arms Liquid Glass Latest only on iOS 26.6.x builds
+        // 23G82/23G83 (device_manager.py) - same gate here.
+        if id == "lg-latest", !["23G82", "23G83"].contains(DeviceInfoEx.buildNumber) {
+            return .unsupported(reason: "Requires iOS 26.6.x (23G82/23G83)")
+        }
+        return window.contains(ios)
             ? .supported
             : .unsupported(reason: "Requires \(window.label)")
     }
@@ -222,7 +227,6 @@ enum FeatureCatalog {
     /// Desktop overall support line (is_version_supported): 16.0–<27.0.
     private static let ios16to26 = IOSWindow(min: (16, 0), maxExclusive: (27, 0))
     private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: nil) // registry min only
-    private static let ios18plus = IOSWindow(min: (16, 0), maxExclusive: nil)
     private static let ios18to26 = IOSWindow(min: (26, 0), maxExclusive: (27, 0)) // desktop classic status-bar gate is 26.x
 
     /// Draws tweak titles and the keys actually written from the desktop
@@ -245,7 +249,7 @@ enum FeatureCatalog {
             subtitle: "SolariumForceFallback → com.apple.SwiftUI.plist + 2 key lock-screen + specular. Desktop arms this only on iOS 26.6.x builds 23G82/23G83.",
             section: "Liquid Glass",
             route: .fullBackup,
-            window: IOSWindow(min: (26, 6), maxExclusive: (26, 7))),
+            window: ios26),
 
         // Removed after the 2026-10-07 firmware audit (STRING ABSENT
         // in iOS 26.6.1 firmware): lg-disable-swiftui, sb-airdrop-limit,
@@ -285,6 +289,9 @@ enum FeatureCatalog {
         Feature(id: "lg-disable-hdr", title: "Disable Solarium HDR",
                 subtitle: "SolariumAllowHDR = false", section: "Liquid Glass",
                 route: .partialRestore, window: ios26),
+        Feature(id: "lg-disable-specular-motion", title: "Disable Specular Motion",
+                subtitle: "SBDisableSpecularEverywhereUsingLSSAssertion", section: "Liquid Glass",
+                route: .partialRestore, window: ios26),
         Feature(id: "lg-disable-specular-everywhere", title: "Disable Specular Everywhere",
                 subtitle: "SBDisableSpecularEverywhere", section: "Liquid Glass",
                 route: .partialRestore, window: ios26),
@@ -295,66 +302,50 @@ enum FeatureCatalog {
         // --- Status Bar (desktop Status Bar page) ---
         Feature(
             id: "status-bar",
-            title: "Status Bar",
+            title: "Status Bar Overrides",
             subtitle: "Carrier text, icons & overrides",
             section: "Status Bar",
             route: .partialRestore,
-            window: ios18to26),
+            window: ios26_0),
 
         // --- SpringBoard (desktop SpringBoard section) ---
         Feature(id: "sb-watchos-pairing", title: "Allow pairing with any watchOS version",
                 subtitle: "NanoRegistry pairing flag (no plist key)", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-dont-lock-crash", title: "Disable Lock After Respring",
                 subtitle: "SBDontLockAfterCrash", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-dont-dim-ac", title: "Disable Screen Dimming While Charging",
                 subtitle: "SBDontDimOrLockOnAC", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-hide-low-power", title: "Disable Low Battery Alerts",
                 subtitle: "SBHideLowPowerAlerts", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-hide-ac-power", title: "Hide AC Power on Lock Screen",
                 subtitle: "SBHideACPower", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-never-breadcrumb", title: "Disable Breadcrumbs",
                 subtitle: "SBNeverBreadcrumb", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-supervision-text", title: "Show Supervision Text on Lock Screen",
                 subtitle: "SBShowSupervisionTextOnLockScreen", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-icon-parallax", title: "Disable Icon Parallax",
                 subtitle: "SBDisableParallax", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "sb-hide-search", title: "Hide Search Button on Home Screen",
                 subtitle: "SBHomeScreenShowsSearchAffordance = false", section: "SpringBoard",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
 
         // --- Daemons (disabled.plist, partial restore) ---
-        Feature(id: "dm-rec-crashreports",
-                title: "Disable CrashReports",
-                subtitle: "Recommended set on desktop: ReportCrash, analyticsd, logd and related crash-reporting daemons.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
-        Feature(id: "dm-rec-diagnostics",
-                title: "Disable Diagnostics",
-                subtitle: "Recommended set on desktop: diagnostic daemons.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
-        Feature(id: "dm-rec-appleads",
-                title: "Disable AppleAds",
-                subtitle: "Recommended set on desktop: promoted-content and ad-privacy daemons.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
-        Feature(id: "dm-rec-feedback",
-                title: "Disable Feedback",
-                subtitle: "Recommended set on desktop: the Feedback daemon.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
-        Feature(id: "dm-rec-shazam",
-                title: "Disable Shazam",
-                subtitle: "Recommended set on desktop: the Shazam daemon.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
-        Feature(id: "dm-rec-settingsstats",
-                title: "Disable SettingsStats",
-                subtitle: "Recommended set on desktop: the Settings usage-stats daemon.",
-                section: "Recommended", route: .partialRestore, window: ios18plus),
+        Feature(id: "dm-recommended",
+                title: "Recommended (analytics, tracking & logging)",
+                subtitle: "One switch on desktop: the safe analytics/telemetry disable set - 23 daemon groups, 63 labels.",
+                section: "Recommended", route: .partialRestore, window: ios16to26),
+        Feature(id: "dm-clear-screentime",
+                title: "Clear ScreenTimeAgent.plist file",
+                subtitle: "Empties com.apple.ScreenTimeAgent.plist; ScreenTimeAgent rebuilds it.",
+                section: "Daemons", route: .partialRestore, window: ios16to26),
         Feature(id: "dm-thermalmonitord", title: "Disable thermalmonitord", subtitle: "com.apple.thermalmonitord", section: "Daemons", route: .partialRestore, window: ios16to26),
         Feature(id: "dm-ota", title: "Disable OTA", subtitle: "com.apple.mobile.softwareupdated + 3 more", section: "Daemons", route: .partialRestore, window: ios16to26),
         Feature(id: "dm-usagetrackingagent", title: "Disable UsageTrackingAgent", subtitle: "com.apple.UsageTrackingAgent", section: "Daemons", route: .partialRestore, window: ios16to26),
@@ -393,27 +384,28 @@ enum FeatureCatalog {
         // --- Internal Options (desktop Internal section) ---
         Feature(id: "in-build-version", title: "Show Build Version in Status Bar",
                 subtitle: "UIStatusBarShowBuildVersion", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "in-rtl", title: "Force Right-to-Left Layout",
                 subtitle: "NSForceRightToLeftWritingDirection", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "in-ltr", title: "Force Left-to-Right Layout",
                 subtitle: "NSForceLeftToRightWritingDirection", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "in-disable-thermal", title: "Disable Thermal",
                 subtitle: "com.apple.thermalmonitord (disabled.plist)", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "in-hidden-icons", title: "Show Hidden Icons on Home Screen",
                 subtitle: "SBIconVisibility", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
         Feature(id: "in-key-flicks", title: "Keyboard Key Flicks",
                 subtitle: "GesturesEnabled", section: "Internal Options",
-                route: .partialRestore, window: ios18plus),
+                route: .partialRestore, window: ios16to26),
 
         // --- PosterBoard (desktop PosterBoard page) ---
-        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10 descriptors)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
         Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .partialRestore, window: ios16to26),
-        Feature(id: "pb-video", title: "Video wallpaper (freeze frame export)", subtitle: "PosterBoard video tendies (loop / reverse / foreground)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-video-freeze", title: "Video wallpaper (freeze frame)", subtitle: "Freeze-frame video tendies: a still frame becomes a live-photo style wallpaper (desktop builds it with a thumbnail).", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-video-loop", title: "Video wallpaper (loop)", subtitle: "Looped video tendies via CAML (Calculation Mode: Linear / Discrete).", section: "PosterBoard", route: .partialRestore, window: ios16to26),
         Feature(id: "pb-reset", title: "Reset PosterBoard", subtitle: "Clears delivered descriptors; PosterBoard rebuilds itself", section: "PosterBoard", route: .partialRestore, window: ios16to26),
 
         // --- Custom Icons (desktop Custom Icons page) ---
@@ -423,7 +415,7 @@ enum FeatureCatalog {
             subtitle: "Icon themes & custom app icons",
             section: "Custom Icons",
             route: .partialRestore,
-            window: ios18plus),
+            window: ios16to26),
     ]
 
     static var sections: [String] {

@@ -96,6 +96,10 @@ struct PayloadSpec: Equatable {
 }
 
 enum PayloadSpecCatalog {
+    /// PosterBoard descriptor structure version (desktop posterboard_tweak.py:
+    /// iOS 16 uses the 59 layout, everything newer the 61 layout).
+    static var pbStructure: Int { DeviceInfo.iosVersion.major == 16 ? 59 : 61 }
+
     static let all: [PayloadSpec] = [
         // Desktop: src/gui/ios/posterboard.py; src/tweaks/posterboard/posterboard_tweak.py.
         PayloadSpec(
@@ -105,8 +109,8 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
-                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard; descriptors mode only - the database is never touched in this mode). Cap: 5 descriptors (desktop MAX_TENDIES_PER_RESTORE). Structure version is 61 on iOS 26 (59 on older lines)."
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    fileTarget: "User-imported .tendies descriptor files (AppDomain-com.apple.PosterBoard; descriptors mode only - the database is never touched in this mode). Caps on desktop: at most 5 .tendies FILES per restore (MAX_TENDIES_PER_RESTORE, device_manager.py) and at most 10 DESCRIPTORS in total across them (posterboard_tweak.py verify_tendie). Structure version is 61 on iOS 26, 59 on iOS 16."
                 )
             ]
         ),
@@ -117,20 +121,32 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
                     fileTarget: "User-imported .batter templates. On desktop the restore domain/path for a template comes from that template's own config.json and is restored recursively per domain - there is no single fixed PosterBoard path for templates."
                 )
             ]
         ),
-        PayloadSpec(
-            featureID: "pb-video",
+                PayloadSpec(
+            featureID: "pb-video-freeze",
             writes: [
                 PayloadWrite(
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
-                    fileTarget: "Video wallpaper .tendies exported from a freeze-frame image + video (loop / reverse / foreground options)."
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    fileTarget: "Freeze-frame video wallpaper (desktop create_live_photo_files): a video plus a freeze-frame thumbnail becomes a live-photo style .tendies descriptor set."
+                )
+            ]
+        ),
+        PayloadSpec(
+            featureID: "pb-video-loop",
+            writes: [
+                PayloadWrite(
+                    domain: .appDomainPosterBoard,
+                    location: .directRestorePath,
+                    filePath: "AppDomain container / PRBPosterExtensionDataStore",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/<structure>/Extensions/<extension>/descriptors",
+                    fileTarget: "Looped video wallpaper (desktop create_video_loop_files): the video loops via CAML with Calculation Mode Linear or Discrete, packaged as a .tendies descriptor set."
                 )
             ]
         ),
@@ -141,35 +157,560 @@ enum PayloadSpecCatalog {
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.WallpaperKit.CollectionsPoster/descriptors",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/\(PayloadSpecCatalog.pbStructure)/Extensions/com.apple.WallpaperKit.CollectionsPoster/descriptors",
                     fileTarget: "Reset writes an EMPTY file here on desktop: CollectionsPoster descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
                 ),
                 PayloadWrite(
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.MercuryPoster/descriptors",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/\(PayloadSpecCatalog.pbStructure)/Extensions/com.apple.MercuryPoster/descriptors",
                     fileTarget: "Reset writes an EMPTY file here on desktop: MercuryPoster descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
                 ),
                 PayloadWrite(
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/Extensions/com.apple.PhotosUIPrivate.PhotosPosterProvider/descriptors",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/\(PayloadSpecCatalog.pbStructure)/Extensions/com.apple.PhotosUIPrivate.PhotosPosterProvider/descriptors",
                     fileTarget: "Reset writes an EMPTY file here on desktop: PhotosPosterProvider descriptors (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
                 ),
                 PayloadWrite(
                     domain: .appDomainPosterBoard,
                     location: .directRestorePath,
                     filePath: "AppDomain container / PRBPosterExtensionDataStore",
-                    restorePath: "Library/Application Support/PRBPosterExtensionDataStore/61/GalleryCache",
+                    restorePath: "/Library/Application Support/PRBPosterExtensionDataStore/\(PayloadSpecCatalog.pbStructure)/GalleryCache",
                     fileTarget: "Reset writes an EMPTY file here on desktop: GalleryCache (emptied); PosterBoard then rebuilds itself. The database is not part of this mode."
                 ),
             ]
         ),
 
         // Desktop: src/gui/ios/daemons.py; src/tweaks/daemons_tweak.py (labels).
+                // Desktop: src/gui/ios/daemons.py (one master switch);
+        // src/tweaks/daemons_tweak.py RECOMMENDED_ANALYTICS (23 groups, 63 labels).
         PayloadSpec(
+            featureID: "dm-recommended",
+            writes: [
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ReportCrash",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ReportCrash.Jetsam",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ReportMemoryException",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.OTACrashCopier",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wifianalyticsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.aslmanager",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.coresymbolicationd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.crash_mover",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.crashreportcopymobile",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DumpBasebandCrash",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DumpPanic",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd.admin",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd.events",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd.watchdog",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd_helper",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd_reporter",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.logd_reporter.report_statistics",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.system.logger",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.hangreporter",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.hangtracerd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.spindump",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.tailspind",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.rtcreportingd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.syslogd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.signpost.signpost_reporter",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.pluginkit.pkreporter",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ProxiedCrashCopier",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ProxiedCrashCopier.ProxyingDevice",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.ReportSystemMemory",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.diagnosticd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.diagnosticextensionsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.diagnosticservicesd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.diagnosticspushd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.symptomsd-diag",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.sysdiagnose",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.sysdiagnose.darwinos",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.sysdiagnose_helper",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.UsageTrackingAgent",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.promotedcontentd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.adprivacyd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.adservicesd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.followupd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.feedbackd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.shazamd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.settings-statsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd.admin",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.analyticsd.events",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.coreduetd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.insightd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.metricsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.mediaremoted",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.symptomsd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.symptomsd-app",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.StatisticalDiagnosticService",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.wirelessdiagnostics",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DuetHeuristic-BM",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.DuetHeuristic-BM.Baseband",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.duetexpertd",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.decisiond",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.triald",
+                    value: .bool(true)
+                ),
+                PayloadWrite(
+                    domain: .databaseDomain,
+                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
+                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
+                    restorePath: "com.apple.xpc.launchd/disabled.plist",
+                    key: "com.apple.sociald",
+                    value: .bool(true)
+                )
+            ]
+        ),
+        // Desktop: src/gui/ios/daemons.py:285; src/tweaks/tweak_loader.py
+        // (ClearScreenTimeAgentPlist -> NullifyFileTweak(FileLocation.screentime)).
+        PayloadSpec(
+            featureID: "dm-clear-screentime",
+            writes: [
+                PayloadWrite(
+                    domain: .homeDomain,
+                    location: .fileLocation(member: "FileLocation.screentime"),
+                    filePath: "/var/mobile/Library/Preferences/com.apple.ScreenTimeAgent.plist",
+                    restorePath: "Library/Preferences/com.apple.ScreenTimeAgent.plist",
+                    fileTarget: "NullifyFile on desktop: this file is delivered EMPTY (zero bytes); ScreenTimeAgent rebuilds it from scratch."
+                )
+            ]
+        ),
+PayloadSpec(
             featureID: "dm-thermalmonitord",
             writes: [
                 PayloadWrite(
@@ -985,6 +1526,19 @@ enum PayloadSpecCatalog {
         // Desktop: src/tweaks/registry.py:283;
         // src/tweaks/basic_plist_locations.py:20.
         PayloadSpec(
+            featureID: "lg-disable-specular-motion",
+            writes: [
+                PayloadWrite(
+                    domain: .managedPreferencesDomain,
+                    location: .fileLocation(member: "FileLocation.globalPreferences"),
+                    filePath: "/var/Managed Preferences/mobile/.GlobalPreferences.plist",
+                    restorePath: "mobile/.GlobalPreferences.plist",
+                    key: "SBDisableSpecularEverywhereUsingLSSAssertion",
+                    value: .bool(true)
+                )
+            ]
+        ),
+PayloadSpec(
             featureID: "lg-disable-specular-everywhere",
             writes: [
                 PayloadWrite(
@@ -1015,397 +1569,7 @@ enum PayloadSpecCatalog {
         ),
 
 
-        PayloadSpec(
-            featureID: "dm-rec-crashreports",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ReportCrash",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ReportCrash.Jetsam",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ReportMemoryException",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.OTACrashCopier",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.analyticsd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.wifianalyticsd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.aslmanager",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.coresymbolicationd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.crash_mover",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.crashreportcopymobile",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.DumpBasebandCrash",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.DumpPanic",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd.admin",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd.events",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd.watchdog",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd_helper",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd_reporter",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.logd_reporter.report_statistics",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.system.logger",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.hangreporter",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.hangtracerd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.spindump",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.tailspind",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.rtcreportingd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.syslogd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.signpost.signpost_reporter",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.pluginkit.pkreporter",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ProxiedCrashCopier",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ProxiedCrashCopier.ProxyingDevice",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.ReportSystemMemory",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-        PayloadSpec(
-            featureID: "dm-rec-diagnostics",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.diagnosticd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.diagnosticextensionsd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.diagnosticservicesd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.diagnosticspushd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.symptomsd-diag",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.sysdiagnose",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.sysdiagnose.darwinos",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.sysdiagnose_helper",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-        PayloadSpec(
-            featureID: "dm-rec-appleads",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.promotedcontentd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.adprivacyd",
-                    value: .bool(true)
-                ),
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.adservicesd",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-        PayloadSpec(
-            featureID: "dm-rec-feedback",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.feedbackd",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-        PayloadSpec(
-            featureID: "dm-rec-shazam",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.shazamd",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-        PayloadSpec(
-            featureID: "dm-rec-settingsstats",
-            writes: [
-                PayloadWrite(
-                    domain: .databaseDomain,
-                    location: .fileLocation(member: "FileLocation.disabledDaemons"),
-                    filePath: "/var/db/com.apple.xpc.launchd/disabled.plist",
-                    restorePath: "com.apple.xpc.launchd/disabled.plist",
-                    key: "com.apple.settings-statsd",
-                    value: .bool(true)
-                ),
-            ]
-        ),
-
+                                                
         // Desktop: src/tweaks/status_bar/status_bar_tweak.py:75-84;
         // src/tweaks/status_bar/status_setter.py:182-195,279-281;
         // src/devicemanagement/device_manager.py:2314-2336.
@@ -1416,9 +1580,17 @@ enum PayloadSpecCatalog {
                     domain: .homeDomain,
                     location: .directRestorePath,
                     filePath: "/var/mobile/Library/SpringBoard/statusBarOverrides",
-                    restorePath: "Library/SpringBoard/statusBarOverrides",
+                    restorePath: "/Library/SpringBoard/statusBarOverrides",
                     fileTarget: "Serialized StatusBarOverrideData struct (3,944 bytes), generated from the desktop StatusBar override state; not a plist and not a single fixed key/value.",
                     condition: "Classic pre-iOS 27 (iOS 26.x) branch. iOS 27 keeps carrier text only."
+                ),
+                PayloadWrite(
+                    domain: .homeDomain,
+                    location: .directRestorePath,
+                    filePath: "/var/mobile/Library/SpringBoard/StatusBarOverrides.archive",
+                    restorePath: "/Library/SpringBoard/StatusBarOverrides.archive",
+                    fileTarget: "StatusBarOverrides.archive (desktop apply_ios27_tweak): an archive SpringBoard unarchives itself, carrying the carrier names only - every other override has no representation in the archive and is dropped.",
+                    condition: "iOS 27 branch. The classic struct above is not read on iOS 27."
                 )
             ],
             note: "The desktop target and serialization size are pinned, but the mobile toggle alone does not specify the individual field values inside the struct."
