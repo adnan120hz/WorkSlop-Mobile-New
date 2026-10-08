@@ -227,7 +227,6 @@ enum FeatureCatalog {
     /// Desktop overall support line (is_version_supported): 16.0–<27.0.
     private static let ios16to26 = IOSWindow(min: (16, 0), maxExclusive: (27, 0))
     private static let ios26_0 = IOSWindow(min: (26, 0), maxExclusive: nil) // registry min only
-    private static let ios18to26 = IOSWindow(min: (26, 0), maxExclusive: (27, 0)) // desktop classic status-bar gate is 26.x
 
     /// Draws tweak titles and the keys actually written from the desktop
     /// registry (sections Liquid Glass, SpringBoard, Internal Options)
@@ -402,7 +401,7 @@ enum FeatureCatalog {
                 route: .partialRestore, window: ios16to26),
 
         // --- PosterBoard (desktop PosterBoard page) ---
-        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 10 descriptors)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
+        Feature(id: "pb-tendies", title: "Tendies wallpapers (.tendies)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore (max 5 files per restore, 10 descriptors)", section: "PosterBoard", route: .partialRestore, window: ios16to26),
         Feature(id: "pb-templates", title: "Templates (.batter)", subtitle: "AppDomain-com.apple.PosterBoard / PRBPosterExtensionDataStore", section: "PosterBoard", route: .partialRestore, window: ios16to26),
         Feature(id: "pb-video-freeze", title: "Video wallpaper (freeze frame)", subtitle: "Freeze-frame video tendies: a still frame becomes a live-photo style wallpaper (desktop builds it with a thumbnail).", section: "PosterBoard", route: .partialRestore, window: ios16to26),
         Feature(id: "pb-video-loop", title: "Video wallpaper (loop)", subtitle: "Looped video tendies via CAML (Calculation Mode: Linear / Discrete).", section: "PosterBoard", route: .partialRestore, window: ios16to26),

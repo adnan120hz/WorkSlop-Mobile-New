@@ -89,21 +89,21 @@ struct StatusBarView: View {
                         Text("Master")
                     } footer: {
                         Text(isIOS27
-                            ? "On iOS 27 the classic statusBarOverrides file is no longer read. Only the carrier names below still apply: they ride StatusBarOverrides.archive, which SpringBoard unarchives itself (desktop apply_ios27_tweak)."
+                            ? "On iOS 27 the classic statusBarOverrides file is no longer read, so only the carrier names below can still change. Note: the iOS 27 carrier-name path (StatusBarOverrides.archive) is experimental and unverified on real devices - it may silently do nothing."
                             : "Target: Library/SpringBoard/statusBarOverrides — a fixed 3,944-byte struct, not a plist (firmware-audited on iOS 26.6.1). The full-bars look without a SIM is visual only; it does not restore cellular service.")
                     }
                     Section("Text overrides") {
-                        TextField("Status Bar Time Text", text: $timeText).disabled(isIOS27)
+                        TextField("Change Status Bar Time Text", text: $timeText).disabled(isIOS27)
                         .cardedRow(style, glass: true)
-                        TextField("Date Text", text: $dateText).disabled(isIOS27)
+                        TextField("Change Status Bar Date Text", text: $dateText).disabled(isIOS27)
                         .cardedRow(style, glass: true)
-                        TextField("Breadcrumb Text", text: $crumbText).disabled(isIOS27)
+                        TextField("Change Breadcrumb Text", text: $crumbText).disabled(isIOS27)
                         .cardedRow(style, glass: true)
-                        TextField("Battery Detail Text", text: $batteryDetail).disabled(isIOS27)
+                        TextField("Change Battery Detail Text", text: $batteryDetail).disabled(isIOS27)
                         .cardedRow(style, glass: true)
-                        TextField("Carrier Text", text: $carrierText)
+                        TextField("Change Carrier Text", text: $carrierText)
                         .cardedRow(style, glass: true)
-                        TextField("Service Badge Text", text: $badgeText).disabled(isIOS27)
+                        TextField("Change Service Badge Text", text: $badgeText).disabled(isIOS27)
                         .cardedRow(style, glass: true)
                         TextField("Secondary Carrier Name", text: $carrier2Text)
                         .cardedRow(style, glass: true)
@@ -112,15 +112,15 @@ struct StatusBarView: View {
                     }
                     Section("Numbers") {
 
-                        Stepper("Signal Strength: \(signalBars)", value: $signalBars, in: 0...5)
+                        Stepper("Change Signal Strength: \(signalBars)", value: $signalBars, in: 0...5)
                         .cardedRow(style, glass: true)
-                        Stepper("Secondary Signal Bars: \(signalBars2)", value: $signalBars2, in: 0...5)
+                        Stepper("Secondary Cellular Signal Bars: \(signalBars2)", value: $signalBars2, in: 0...5)
                         .cardedRow(style, glass: true)
-                        Stepper("Wi-Fi Signal Strength: \(wifiBars)", value: $wifiBars, in: 0...5)
+                        Stepper("Change Wi-Fi Signal Strength: \(wifiBars)", value: $wifiBars, in: 0...5)
                         .cardedRow(style, glass: true)
-                        Stepper("Battery Icon Capacity: \(batteryCapacity)%", value: $batteryCapacity, in: 0...100)
+                        Stepper("Change Battery Icon Capacity: \(batteryCapacity)%", value: $batteryCapacity, in: 0...100)
                         .cardedRow(style, glass: true)
-                        Stepper("Data Network Type: \(netType)", value: $netType, in: 0...30)
+                        Stepper("Change Data Network Type: \(netType)", value: $netType, in: 0...30)
                         .cardedRow(style, glass: true)
                         Stepper("Secondary Data Network Type: \(netType2)", value: $netType2, in: 0...30)
                         .cardedRow(style, glass: true)
@@ -440,7 +440,7 @@ struct CustomIconsView: View {
                         PhotosPicker(selection: $picked, matching: .images) {
                             Label("Import image (JPEG / PNG / RAW)", systemImage: "photo")
                         }
-                        Text("App name and bundle ID are required before this icon can be staged.")
+                        Text("A bundle ID is required before this icon can be staged. The app name may stay empty (hidden label, like desktop).")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -609,7 +609,10 @@ enum TendiesStore {
     }
 
     static func save(url: URL, kind: String) -> Bool {
-        guard list(kind: kind).count < 5 else { return false }
+        // No import-time cap: desktop caps .tendies at 5 per
+        // restore, at apply time, with a notice (device_manager
+        // MAX_TENDIES_PER_RESTORE) - imports are never refused,
+        // and templates are not capped at all.
         let dest = dir(kind: kind).appendingPathComponent(url.lastPathComponent)
         do {
             if FileManager.default.fileExists(atPath: dest.path) {
