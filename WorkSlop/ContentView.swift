@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var selection = SelectionStore()
     @AppStorage("appIconChoice") private var appIconChoice = ""
-    @AppStorage("glassUI") private var glassUI = true
 
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
 
@@ -48,7 +47,6 @@ struct ContentView: View {
                 .accessibilityIdentifier("tab-settings")
         }
         .tint(style.tint)
-        .modifier(TabBarChrome(glass: glassUI))
         .onChange(of: uiStyleRaw) { _ in
             // The WorkSlop app icon follows the UI automatically:
             // purple for the main UI, blue second, gray third.
@@ -62,7 +60,6 @@ struct ContentView: View {
 }
 
 struct HomeView: View {
-    @AppStorage("glassUI") private var glassUI = true
     @EnvironmentObject private var selection: SelectionStore
     @State private var pairingImported = PairingStore.isImported
     @State private var vpnDetected = DeviceStatus.vpnTunnelActive()
@@ -173,10 +170,9 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .cardSurface(style, glass: glassUI)
+                    .cardSurface(style, glass: true)
                 }
                 .accessibilityIdentifier("home-lg-latest")
-                appearanceChoice
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     modernTile("iphone", "Device",
                                "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")
@@ -206,7 +202,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
-        .cardSurface(style, glass: glassUI)
+        .cardSurface(style, glass: true)
     }
 
     // MARK: - WorkSlop main layout (blue): tile grid, left header
@@ -239,10 +235,9 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .cardSurface(style, glass: glassUI)
+                    .cardSurface(style, glass: true)
                 }
                 .accessibilityIdentifier("home-lg-latest")
-                appearanceChoice
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     mainTile("iphone", "Device",
                              "\(DeviceStatus.modelOrDash)\n\(DeviceInfoEx.versionWithBuild)")
@@ -263,25 +258,6 @@ struct HomeView: View {
         }
     }
 
-
-    /// App appearance on iOS 26: real Liquid Glass, or the flat
-    /// pre-glass look of the earlier build. The choice re-themes
-    /// every card, the backdrop and the tab bar immediately.
-    @ViewBuilder
-    private var appearanceChoice: some View {
-        if DeviceInfo.iosVersion >= (26, 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("App appearance (iOS 26)")
-                    .font(.subheadline.weight(.semibold))
-                Picker("App appearance", selection: $glassUI) {
-                    Text("Liquid Glass UI").tag(true)
-                    Text("No Liquid Glass").tag(false)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("appearance-picker")
-            }
-        }
-    }
 
     /// Menu shortcuts that also live in the bottom tabs — visible
     /// right on Home, as requested.
@@ -316,7 +292,7 @@ struct HomeView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(14)
-            .cardSurface(style, glass: glassUI)
+            .cardSurface(style, glass: true)
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
@@ -342,7 +318,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
         .padding(12)
-        .cardSurface(style, glass: glassUI)
+        .cardSurface(style, glass: true)
     }
 }
 

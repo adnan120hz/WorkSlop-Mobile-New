@@ -21,7 +21,8 @@ struct ThemedRows: ViewModifier {
 
     func body(content: Content) -> some View {
         content.listRowBackground(
-            style == .nugget ? nil : style.tint.opacity(0.16))
+            style == .nugget ? nil : style.tint.opacity(0.28))
+            .listRowSeparatorTint(style == .nugget ? nil : style.tint.opacity(0.35))
     }
 }
 
@@ -31,7 +32,6 @@ struct ThemedRows: ViewModifier {
 struct FeatureRow: View {
     let feature: Feature
     @EnvironmentObject private var selection: SelectionStore
-    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @State private var showInfo = false
 
@@ -148,7 +148,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(10)
-                .cardSurface(style, glass: glassUI)
+                .cardSurface(style, glass: true)
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {

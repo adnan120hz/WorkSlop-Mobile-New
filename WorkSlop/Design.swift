@@ -15,7 +15,7 @@ struct CardSurface: ViewModifier {
             if glass {
                 if #available(iOS 26.0, *) {
                     content.glassEffect(
-                        .regular.tint(style.tint.opacity(0.26)),
+                        .regular.tint(style.tint.opacity(0.30)),
                         in: RoundedRectangle(cornerRadius: radius, style: .continuous))
                 } else {
                     content.background(
@@ -34,22 +34,6 @@ struct CardSurface: ViewModifier {
         style == .nugget
             ? Color(UIColor.secondarySystemBackground)
             : style.tint.opacity(0.13)
-    }
-}
-
-/// Tab bar chrome: glass lets the iOS 26 floating glass bar show;
-/// flat forces the opaque pre-glass bar.
-struct TabBarChrome: ViewModifier {
-    let glass: Bool
-
-    func body(content: Content) -> some View {
-        if glass {
-            content
-        } else {
-            content
-                .toolbarBackground(.visible, for: .tabBar)
-                .toolbarBackground(Color(UIColor.systemBackground), for: .tabBar)
-        }
     }
 }
 
@@ -170,7 +154,6 @@ struct BrandTile: View {
 /// background: faint "apple.logo" watermarks slowly floating and
 /// turning behind the content. Static when Reduce Motion is on.
 struct AppleDriftBackground: View {
-    @AppStorage("glassUI") private var glassUI = true
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var drift = false
@@ -196,19 +179,6 @@ struct AppleDriftBackground: View {
     ]
 
     var body: some View {
-        if !glassUI {
-            // Flat pre-glass backdrop: one solid wash, no drift.
-            ZStack {
-                Color(UIColor.systemBackground)
-                tint.opacity(0.05)
-            }
-            .ignoresSafeArea()
-        } else {
-            glassBody
-        }
-    }
-
-    private var glassBody: some View {
         GeometryReader { geo in
             ZStack {
                 if style.showsDrift {
