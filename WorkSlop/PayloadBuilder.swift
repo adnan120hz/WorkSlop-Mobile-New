@@ -47,7 +47,12 @@ enum PayloadBuilder {
         for spec in PayloadSpecCatalog.all where staged.contains(spec.featureID) {
             for write in spec.writes {
                 if let target = write.fileTarget {
-                    warnings.append("\(spec.featureID): targets \(target) - depends on a desktop page setting, toggle alone has no fixed payload.")
+                    // pb-reset and dm-clear-screentime ARE handled by
+                    // the dedicated zero-byte blocks below - warning
+                    // here would contradict the files actually built.
+                    if spec.featureID != "pb-reset" && spec.featureID != "dm-clear-screentime" {
+                        warnings.append("\(spec.featureID): targets \(target) - depends on a desktop page setting, toggle alone has no fixed payload.")
+                    }
                     continue
                 }
                 if write.restorePath.contains("<") {
@@ -167,6 +172,22 @@ enum PayloadBuilder {
         if staged.contains("pb-reset"),
            let resetSpec = PayloadSpecCatalog.all.first(where: { $0.featureID == "pb-reset" }) {
             for write in resetSpec.writes {
+                let url = dir.appendingPathComponent(
+                    write.restorePath.replacingOccurrences(of: "/", with: "_") + ".empty")
+                try? Data().write(to: url, options: .atomic)
+                files.append(BuiltFile(
+                    domain: write.domain.rawValue, restorePath: write.restorePath,
+                    keys: ["<empty file, 0 bytes>"], url: url))
+            }
+        }
+
+        // Clear ScreenTimeAgent (desktop NullifyFileTweak on
+        // FileLocation.screentime, tweak_loader.py:171): the plist
+        // is delivered EMPTY (zero bytes); ScreenTimeAgent rebuilds
+        // it from scratch.
+        if staged.contains("dm-clear-screentime"),
+           let stSpec = PayloadSpecCatalog.all.first(where: { $0.featureID == "dm-clear-screentime" }) {
+            for write in stSpec.writes {
                 let url = dir.appendingPathComponent(
                     write.restorePath.replacingOccurrences(of: "/", with: "_") + ".empty")
                 try? Data().write(to: url, options: .atomic)
