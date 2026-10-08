@@ -41,6 +41,8 @@ targets:
                 - IconGray
     sources:
       - path: WorkSlop
+        excludes:
+          - iOS18Icons
       - path: WorkSlop/iOS18Icons
         type: folder
     settings:
