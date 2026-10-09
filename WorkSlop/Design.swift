@@ -81,10 +81,13 @@ struct CardSurface: ViewModifier {
                     startPoint: .top, endPoint: .bottom),
                 lineWidth: 1)
         }
-        // The gloss never changes while a card sits still, so the
-        // four gradient layers rasterize into one texture instead
-        // of being re-composited layer by layer on every frame.
-        .drawingGroup()
+        // NOTE: no .drawingGroup() here. Rasterizing the gloss
+        // into an offscreen texture (tried as a scroll-perf idea in
+        // cd4bc09) made every card's sheen a texture that had to be
+        // re-rasterized as list rows materialize during a scroll -
+        // hitches - and the flattened texture read as a flat
+        // milky-gray veil over the dark cards. The gradients
+        // composite live on the GPU instead, exactly as before.
         .allowsHitTesting(false)
     }
 }
