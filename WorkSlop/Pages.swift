@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 import ImageIO
+import CryptoKit
 
 // MARK: - Status Bar (desktop page parity, staged values)
 
@@ -19,7 +20,7 @@ private struct SBTextRow: View {
     var body: some View {
         TextField(title, text: $text)
             .disabled(disabled)
-            .cardedRow(style, glass: true)
+            .cardedRow(style)
     }
 }
 
@@ -33,7 +34,7 @@ private struct SBStepperRow: View {
 
     var body: some View {
         Stepper("\(label): \(value)\(suffix)", value: $value, in: range)
-            .cardedRow(style, glass: true)
+            .cardedRow(style)
     }
 }
 
@@ -52,11 +53,11 @@ private struct SBToggleRow: View {
             Toggle(title, isOn: $isOn)
                 .disabled(disabled)
                 .accessibilityIdentifier(identifier)
-                .cardedRow(style, glass: true)
+                .cardedRow(style)
         } else {
             Toggle(title, isOn: $isOn)
                 .disabled(disabled)
-                .cardedRow(style, glass: true)
+                .cardedRow(style)
         }
     }
 }
@@ -82,7 +83,7 @@ private struct SBHideIconRow: View {
                 if on { items.insert(idx) } else { items.remove(idx) }
                 hiddenItemsRaw = items.sorted().map(String.init).joined(separator: ",")
             }))
-            .cardedRow(style, glass: true)
+            .cardedRow(style)
     }
 }
 
@@ -116,8 +117,15 @@ struct StatusBarView: View {
 
     private var style: UIStyle { UIStyle(rawValue: uiStyleRaw) ?? .modern }
 
-    /// Desktop-mapped status bar items that can be hidden
-    /// (itemIsEnabled indexes from the desktop page).
+    /// Desktop-mapped status bar items that can be hidden.
+    /// Verified 2026-10-09: the same 14 (index, name) pairs as the
+    /// desktop page (desk-wave10 src/gui/ios/statusbar.py:212-225),
+    /// values from StatusBarItem in
+    /// src/tweaks/status_bar/status_setter.py:6-51 - the desktop
+    /// page itself labels index 9 "Wi-Fi icon" (its
+    /// CellularDataNetworkStatusBarItem), and 2 "Focus Mode icon"
+    /// (QuietModeStatusBarItem). Staging-only either way: the
+    /// status-bar struct is not built on mobile yet.
     private static let hideableItems: [(idx: Int, name: String)] = [
         (2, "Focus Mode icon"), (3, "Airplane Mode icon"),
         (6, "Cellular Service icon"), (9, "Wi-Fi icon"),
@@ -192,11 +200,11 @@ struct StatusBarView: View {
                         Text("Values stage here exactly like the desktop page. The struct is built from the device's captured base during the restore session.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                     Section {
                         ApplySection()
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -244,7 +252,7 @@ struct DaemonsView: View {
                     }
                     Section {
                         ApplySection()
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -283,7 +291,7 @@ struct AppleInternalView: View {
                     }
                     Section {
                         ApplySection()
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -309,7 +317,7 @@ struct CustomIconEntry: Identifiable, Codable {
 }
 
 /// Decoded images for the user's own staged icons, cached by a
-/// cheap sampled fingerprint of the image data. Rows used to run
+/// full-content hash of the image data. Rows used to run
 /// `UIImage(data:)` on every render - a picked photo becomes a
 /// full-size PNG, so scrolling the list re-decoded megabytes per
 /// frame. Thumbnails are decoded downsampled (the row shows
@@ -319,17 +327,14 @@ enum EntryImageCache {
     private static let fullSize = NSCache<NSString, UIImage>()
 
     private static func fingerprint(_ data: Data) -> NSString {
-        // FNV-1a over the byte count plus head/tail samples: cheap,
-        // and a different image of the exact same size still lands
-        // on a different key unless its edges also match.
-        var hash: UInt64 = 0xcbf29ce484222325
-        func mix(_ byte: UInt8) {
-            hash ^= UInt64(byte)
-            hash &*= 0x100000001b3
-        }
-        for b in data.prefix(4096) { mix(b) }
-        if data.count > 4096 { for b in data.suffix(4096) { mix(b) } }
-        return "\(data.count):\(hash)" as NSString
+        // Full-content SHA-256: the key identifies the exact image
+        // bytes, so replacing an icon with a same-size edit can
+        // never leave a stale thumbnail (or stale preview) behind.
+        // Hashing runs once per unseen image; the decoded result
+        // is what gets cached.
+        let digest = SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }.joined()
+        return "\(data.count):\(digest)" as NSString
     }
 
     static func thumbnail(_ data: Data) -> UIImage? {
@@ -417,7 +422,7 @@ struct CustomIconsView: View {
             }
         }
         .accessibilityIdentifier(dark ? "ios18-dark-\(icon.slug)" : "ios18-light-\(icon.slug)")
-        .cardedRow(style, glass: true)
+        .cardedRow(style)
     }
 
     var body: some View {
@@ -489,7 +494,7 @@ struct CustomIconsView: View {
                         Text("Your own images work too: add them above one by one - image, app name and bundle ID.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                     Section {
                         ForEach(FeatureCatalog.features(in: "Custom Icons")) { feature in
@@ -498,11 +503,11 @@ struct CustomIconsView: View {
                     } header: {
                         Text("Delivery")
                     } footer: {
-                        Text("With this on and at least one complete icon below, the staging payload built on disk gains one Cowabunga-style .webclip folder per app (Info.plist + icon.png). Nothing is on the Home Screen until the restore engine delivers it.")
+                        Text("With this on and at least one complete icon below, the staging payload built on disk gains one WorkSlop .webclip folder per app (Info.plist + icon.png). Nothing is on the Home Screen until the restore engine delivers it.")
                     }
                     Section {
                         ApplySection()
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -602,12 +607,12 @@ struct PosterBoardView: View {
                     Section {
                         Button("Import PosterBoard file (.tendies)") { importKind = "Tendies"; importing = true }
                             .accessibilityIdentifier("pb-import")
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                         if files.isEmpty {
                             Text("Nothing imported. PosterBoard delivers nothing until at least one .tendies is here.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
-                                .cardedRow(style, glass: true)
+                                .cardedRow(style)
                         } else {
                             ForEach(files, id: \.self) { name in
                                 Label(name, systemImage: "doc")
@@ -626,19 +631,19 @@ struct PosterBoardView: View {
                         Text("Descriptors ride the Partial restore route (max iOS 26), like the desktop Descriptors mode. Up to 5 files ride one apply (desktop cap).")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     } header: {
                         Text("PosterBoard (.tendies)")
                     }
                     Section {
                         Button("Import Template file (.batter)") { importKind = "Templates"; importing = true }
                             .accessibilityIdentifier("themes-template-import")
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                         if templateFiles.isEmpty {
                             Text("Nothing imported. Templates install and manage delivered PosterBoard content the desktop way.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
-                                .cardedRow(style, glass: true)
+                                .cardedRow(style)
                         } else {
                             ForEach(templateFiles, id: \.self) { name in
                                 Label(name, systemImage: "doc")
@@ -652,7 +657,7 @@ struct PosterBoardView: View {
                         Text("Different job from .tendies: template packages manage delivered PosterBoard content. (The database/Configurations side exists on desktop and is not offered on mobile.)")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     } header: {
                         Text("Templates (.batter)")
                     }
@@ -759,7 +764,7 @@ struct SpringBoardView: View {
                     }
                     Section {
                         ApplySection()
-                            .cardedRow(style, glass: true)
+                            .cardedRow(style)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -798,6 +803,7 @@ struct ApplySection: View {
     @State private var built: BuiltPayload?
     @State private var showSheet = false
     @State private var confirmCancel = false
+    @State private var isBuilding = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -805,14 +811,35 @@ struct ApplySection: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             Button {
-                built = PayloadBuilder.build(staged: selection.staged)
-                showSheet = true
+                guard !isBuilding else { return }
+                isBuilding = true
+                let staged = selection.staged
+                Task {
+                    // Building writes files, serializes plists and
+                    // copies icon PNGs - on the main thread a tap
+                    // could freeze while it ran. The build itself is
+                    // untouched, so the payload bytes are identical.
+                    let result = await Task.detached(priority: .userInitiated) {
+                        PayloadBuilder.build(staged: staged)
+                    }.value
+                    built = result
+                    isBuilding = false
+                    showSheet = true
+                }
             } label: {
-                Text("Apply (\(selection.staged.count) tweak)")
+                if isBuilding {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text("Building payload…")
+                    }
                     .frame(maxWidth: .infinity)
+                } else {
+                    Text("Apply (\(selection.staged.count) tweak)")
+                        .frame(maxWidth: .infinity)
+                }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(selection.staged.isEmpty)
+            .disabled(selection.staged.isEmpty || isBuilding)
             .accessibilityIdentifier("apply-button")
             Button(role: .destructive) {
                 confirmCancel = true

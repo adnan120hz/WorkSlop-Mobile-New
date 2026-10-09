@@ -1895,8 +1895,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ApplicationBundleIdentifier",
                     value: .userSuppliedString(field: "selected app bundle ID"),
                     condition: "Written once for each selected app/icon theme."
@@ -1904,8 +1904,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ApplicationBundleVersion",
                     value: .int(1),
                     condition: "Written once for each selected app/icon theme."
@@ -1913,8 +1913,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ClassicMode",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1922,8 +1922,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ConfigurationIsManaged",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1931,8 +1931,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ContentMode",
                     value: .string("UIWebClipContentModeRecommended"),
                     condition: "Written once for each selected app/icon theme."
@@ -1940,8 +1940,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "FullScreen",
                     value: .bool(true),
                     condition: "Written once for each selected app/icon theme."
@@ -1949,8 +1949,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "IconIsPrecomposed",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1958,8 +1958,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "IconIsScreenShotBased",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1967,8 +1967,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "IgnoreManifestScope",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1976,8 +1976,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "IsAppClip",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -1985,8 +1985,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "Orientations",
                     value: .int(0),
                     condition: "Written once for each selected app/icon theme."
@@ -1994,8 +1994,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "ScenelessBackgroundLaunch",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -2003,8 +2003,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "Title",
                     value: .userSuppliedString(field: "sanitized selected display name"),
                     condition: "Written once for each selected app/icon theme."
@@ -2012,8 +2012,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "WebClipStatusBarStyle",
                     value: .string("UIWebClipStatusBarStyleDefault"),
                     condition: "Written once for each selected app/icon theme."
@@ -2021,8 +2021,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/Info.plist",
                     key: "RemovalDisallowed",
                     value: .bool(false),
                     condition: "Written once for each selected app/icon theme."
@@ -2030,8 +2030,8 @@ PayloadSpec(
                 PayloadWrite(
                     domain: .homeDomain,
                     location: .parameterizedWebClipFolder,
-                    filePath: "/var/mobile/Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/icon.png",
-                    restorePath: "Library/WebClips/Cowabunga_<bundleID>,<sanitizedDisplayName>.webclip/icon.png",
+                    filePath: "/var/mobile/Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/icon.png",
+                    restorePath: "Library/WebClips/WorkSlop_<bundleID>,<sanitizedDisplayName>.webclip/icon.png",
                     value: .userSuppliedData(field: "selected app icon image bytes"),
                     fileTarget: "icon.png containing the selected app icon image bytes.",
                     condition: "Written once for each selected app/icon theme that has icon data; themes without icon data are skipped after their Info.plist has been staged by the desktop code."

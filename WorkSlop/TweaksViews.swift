@@ -131,7 +131,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(12)
-                .cardSurface(style, glass: true, radius: 26)
+                .cardSurface(style, radius: 26)
             case .modern:
                 // Card rows on a purple-tinted plate.
                 HStack(alignment: .center, spacing: 12) {
@@ -158,7 +158,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(10)
-                .cardSurface(style, glass: true)
+                .cardSurface(style)
             case .workslop:
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
@@ -184,7 +184,7 @@ struct FeatureRow: View {
                     toggle
                 }
                 .padding(10)
-                .cardSurface(style, glass: true)
+                .cardSurface(style)
             }
         }
         .opacity(availability.isEnabled ? 1 : 0.6)
@@ -253,7 +253,7 @@ struct LiquidGlassView: View {
 
                 Section {
                     ApplySection()
-                        .cardedRow(style, glass: true)
+                        .cardedRow(style)
                 }
                 }
                 .scrollContentBackground(.hidden)

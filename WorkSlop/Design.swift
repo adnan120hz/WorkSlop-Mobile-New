@@ -11,7 +11,6 @@ import SwiftUI
 /// system-gray fill.
 struct CardSurface: ViewModifier {
     let style: UIStyle
-    let glass: Bool
     var radius: CGFloat = 32
     /// Big soft shadows are for hero cards; list rows skip them
     /// (dozens of blurred shadows per screen = scroll lag).
@@ -30,28 +29,21 @@ struct CardSurface: ViewModifier {
 
     func body(content: Content) -> some View {
         let surfaced = Group {
-            if glass {
-                if #available(iOS 26.0, *) {
-                    content
-                        .glassEffect(.regular.tint(style.tint.opacity(tintOpacity)), in: shape)
-                        .overlay {
-                            // Color wash above the glass: the UI
-                            // tint stays visible even when the
-                            // system flattens glass rendering.
-                            shape.fill(style.tint.opacity(style == .nugget ? 0.06 : 0.09))
-                                .allowsHitTesting(false)
-                        }
-                        .overlay { gloss }
-                } else {
-                    content
-                        .background(.ultraThinMaterial, in: shape)
-                        .overlay { shape.fill(style.tint.opacity(0.08)) }
-                        .overlay { gloss }
-                }
+            if #available(iOS 26.0, *) {
+                content
+                    .glassEffect(.regular.tint(style.tint.opacity(tintOpacity)), in: shape)
+                    .overlay {
+                        // Color wash above the glass: the UI
+                        // tint stays visible even when the
+                        // system flattens glass rendering.
+                        shape.fill(style.tint.opacity(style == .nugget ? 0.06 : 0.09))
+                            .allowsHitTesting(false)
+                    }
+                    .overlay { gloss }
             } else {
                 content
-                    .background(flatFill)
-                    .clipShape(shape)
+                    .background(.ultraThinMaterial, in: shape)
+                    .overlay { shape.fill(style.tint.opacity(0.08)) }
                     .overlay { gloss }
             }
         }
@@ -95,26 +87,20 @@ struct CardSurface: ViewModifier {
         .drawingGroup()
         .allowsHitTesting(false)
     }
-
-    private var flatFill: Color {
-        style == .nugget
-            ? Color(UIColor.secondarySystemBackground)
-            : style.tint.opacity(0.13)
-    }
 }
 
 extension View {
-    /// Padded card using the current appearance (glass or flat).
-    func cardSurface(_ style: UIStyle, glass: Bool, radius: CGFloat = 32) -> some View {
-        modifier(CardSurface(style: style, glass: glass, radius: radius))
+    /// Padded card on the app's one card surface (full Liquid Glass).
+    func cardSurface(_ style: UIStyle, radius: CGFloat = 32) -> some View {
+        modifier(CardSurface(style: style, radius: radius))
     }
 
     /// A List row rendered as a self-contained colored card, so no
     /// menu depends on list-style backgrounds to avoid white blocks.
-    func cardedRow(_ style: UIStyle, glass: Bool) -> some View {
+    func cardedRow(_ style: UIStyle) -> some View {
         padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .modifier(CardSurface(style: style, glass: glass, shadowed: false))
+            .modifier(CardSurface(style: style, shadowed: false))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))

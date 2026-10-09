@@ -125,8 +125,8 @@ enum PayloadBuilder {
                 let safeName = entry.appName
                     .replacingOccurrences(of: ",", with: " ")
                     .replacingOccurrences(of: "/", with: " ")
-                let folder = "Library/WebClips/Cowabunga_\(entry.bundleID),\(safeName).webclip"
-                // Cowabunga makeInfoPlist, verbatim (icon_themes_tweak.py:39-57).
+                let folder = "Library/WebClips/WorkSlop_\(entry.bundleID),\(safeName).webclip"
+                // Desktop make_webclip_plist, verbatim (icon_themes_tweak.py:62).
                 let plist: [String: Any] = [
                     "ApplicationBundleIdentifier": entry.bundleID,
                     "ApplicationBundleVersion": 1,

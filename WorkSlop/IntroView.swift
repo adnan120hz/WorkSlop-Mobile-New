@@ -1,15 +1,15 @@
 import SwiftUI
 
-/// First-launch introduction. Shown once (UserDefaults flag), then
-/// reachable again from Settings. It states plainly what WorkSlop
+/// First-launch introduction. Shown once (UserDefaults flag) at
+/// first launch. It states plainly what WorkSlop
 /// Mobile supports on iOS and what it needs before anything is applied.
 ///
 /// The support lines mirror the desktop support matrix: partial-restore
 /// tweaks cover the desktop 16.0 to <27.0 support line; Liquid Glass keys
 /// live on iOS 26+, the S8 (Latest) payload targets iOS 26.0+, and
 /// iOS 27 follows the desktop's separate full-flow handling. On-device
-/// sending stays behind the restore engine, which is not verified on
-/// iOS 26.6.1 yet — the intro says so instead of promising it.
+/// sending stays behind the restore engine, which is not built yet —
+/// the intro says so instead of promising it.
 struct IntroView: View {
     @AppStorage("seenIntro") private var seenIntro = false
     @AppStorage("uiStyle") private var uiStyleRaw = UIStyle.modern.rawValue
@@ -51,8 +51,8 @@ struct IntroView: View {
                         "Import the pairing file (.plist from idevicepair) in Settings.",
                         "Applies are designed to run over a loopback VPN tunnel to this same phone.",
                         "The app cannot reboot your iPhone — after an apply you restart manually.",
-                        "Cancel really stops: a cancelled restore never keeps running in the background.",
-                        "Apply builds the real payload on this phone and runs it through the on-device restore engine.",
+                        "Cancel only unstages: nothing is in flight yet. A running restore has no true cancel - a hard stop is turning the VPN off, then force-restarting.",
+                        "Apply builds the real payload on this phone. Sending it to the system waits on the on-device restore engine, which is not built yet.",
                     ])
                 .tag(2)
             }
@@ -97,7 +97,7 @@ struct IntroView: View {
                     }
                 }
                 .padding(16)
-                .cardSurface(style, glass: true)
+                .cardSurface(style)
                 .padding(.horizontal, 20)
                 Spacer(minLength: 24)
             }

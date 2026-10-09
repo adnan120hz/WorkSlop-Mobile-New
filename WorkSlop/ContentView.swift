@@ -109,7 +109,7 @@ struct HomeView: View {
                     nuggetRow("checklist", "Staged tweaks", "\(selection.staged.count) selected")
                 }
                 .padding(.horizontal, 12)
-                .cardSurface(style, glass: true, radius: 22)
+                .cardSurface(style, radius: 22)
                 Button("Refresh device status") {
                     vpnDetected = DeviceStatus.vpnTunnelActive()
                 }
@@ -124,7 +124,7 @@ struct HomeView: View {
                         Image(systemName: "chevron.right").foregroundStyle(.secondary)
                     }
                     .padding(12)
-                    .cardSurface(style, glass: true, radius: 22)
+                    .cardSurface(style, radius: 22)
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 Text("Beta testers: Charlie • rfrz1d_ • Davy (@Davydavpn) • @uggtx")
@@ -169,7 +169,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .cardSurface(style, glass: true)
+                    .cardSurface(style)
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -201,7 +201,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
         .padding(14)
-        .cardSurface(style, glass: true)
+        .cardSurface(style)
     }
 
     // MARK: - WorkSlop main layout (blue): tile grid, left header
@@ -234,7 +234,7 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .cardSurface(style, glass: true)
+                    .cardSurface(style)
                 }
                 .accessibilityIdentifier("home-lg-latest")
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -291,7 +291,7 @@ struct HomeView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(14)
-            .cardSurface(style, glass: true)
+            .cardSurface(style)
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
@@ -317,7 +317,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
         .padding(14)
-        .cardSurface(style, glass: true)
+        .cardSurface(style)
     }
 }
 
@@ -384,8 +384,6 @@ struct SettingsView: View {
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                     Text("Rollback: if Liquid Glass (Latest) was applied, removing it deletes exactly its four keys from a fresh capture of this phone - nothing else is touched. The rollback rides the same engine and the same restart rule.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Emergency stop: if you must stop an apply mid-way, turn off WireGuard first, then force restart — press Volume Up, Volume Down, then hold the Side button until the Apple logo appears.")
