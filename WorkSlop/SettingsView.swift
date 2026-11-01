@@ -55,11 +55,11 @@ struct SettingsView: View {
             }
 
             Section {
-                Text("WorkSlop Mobile is free software, licensed under the GNU General Public License v3.0 or later.")
+                Text("WorkSlop Mobile is free software, licensed under the GNU Affero General Public License v3.0 or later.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                Link("Read the full license (GPL-3.0)",
-                     destination: URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
+                Link("Read the full license (AGPL-3.0)",
+                     destination: URL(string: "https://www.gnu.org/licenses/agpl-3.0.html")!)
             } header: {
                 Text("License")
             }
