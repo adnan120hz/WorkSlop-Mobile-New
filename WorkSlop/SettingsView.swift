@@ -47,6 +47,9 @@ struct SettingsView: View {
                 Text("iOS 18 icon pack: catwithabaloon (v2.0)")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Text("Upstream engine contributors: awesomenull, Wind0ws11Aero, LeminLimez, mak5er, skadz108, rooootdev, neonmodder123, 0xjohnnydev, iTechExpert, Mikasa-san")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             } header: {
                 Text("Credits")
             }
