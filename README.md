@@ -32,16 +32,9 @@ it the way you sideloaded previous beta builds.)
   used to fail silently).
 - Icon Themes: the duplicate set is gone, one set remains.
 
-### What changed since v4
+### Removed
 
-- Version 5.0 (build 14), minimum iOS 26.0.
-- New rows write `.globalPreferences` only, and are delivered by the
-  Normal method and the partial-restore whitelist. On iOS 26 they are
-  hidden.
-- The engine, backup, and restore paths are unchanged from v4
-  (Normal, iOS 27 Partial Restore, All Data Backup, Restore All Data).
-- In-app Credits updated.
-
+- iOS 18 icon velum work.
 ### Before you apply
 
 The warnings under v4 below still apply: Find My iPhone OFF, a
