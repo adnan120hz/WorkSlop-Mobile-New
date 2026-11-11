@@ -8,11 +8,9 @@ WorkSlop Mobile by **adnan.120hz** — a no-jailbreak iOS customization app.
 Sideload the IPA, import your pairing file once, and apply everything
 straight from your iPhone. Licensed under **AGPL-3.0** (see `LICENSE`).
 
-## v5.0 — device-test build
+## v5.0
 
-This is a device-test build. It is CI-green and binary-verified only.
-Nothing new in it is device-proven yet. Test one thing at a time and
-send logs or photos for everything you try.
+WorkSlop Mobile v5.0 (build 14, minimum iOS 26.0).
 
 Download: [v5.0 release](https://github.com/adnan120hz/WorkSlop-Mobile-New/releases/tag/v5.0)
 (IPA `WorkSlop-v5.0-license-darkicon-unsigned.ipa`, unsigned — sideload
