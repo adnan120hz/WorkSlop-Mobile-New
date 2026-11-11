@@ -8,6 +8,48 @@ WorkSlop Mobile by **adnan.120hz** — a no-jailbreak iOS customization app.
 Sideload the IPA, import your pairing file once, and apply everything
 straight from your iPhone. Licensed under **AGPL-3.0** (see `LICENSE`).
 
+## v5.0 — device-test build
+
+This is a device-test build. It is CI-green and binary-verified only.
+Nothing new in it is device-proven yet. Test one thing at a time and
+send logs or photos for everything you try.
+
+Download: [v5.0 release](https://github.com/adnan120hz/WorkSlop-Mobile-New/releases/tag/v5.0)
+(IPA `WorkSlop-v5.0-license-darkicon-unsigned.ipa`, unsigned — sideload
+it the way you sideloaded previous beta builds.)
+
+### What's new in v5.0
+
+- Liquid Glass menu for iOS 27 expanded from 8 to 32 rows (Blur Fill,
+  StackedImageContainer, Allow HDR, Live Tuning, Calistoga, and more).
+  The menu only shows tweaks that match your iOS version.
+- Settings → License now opens an Upstream page with 10 sections
+  describing where each part of the app comes from and the license it
+  runs under (AGPL-3.0 and MIT parts).
+- Dark Mode, plus a dark app icon that follows the system appearance.
+- iOS 18 Flat Lock Screen section in PosterBoard.
+- Photo-to-.tendies generator: turn your own photo into a PosterBoard
+  wallpaper pack.
+- Big-text popup when a backup is not encrypted (the apply preflight
+  used to fail silently).
+- Icon Themes: the duplicate set is gone, one set remains.
+
+### What changed since v4
+
+- Version 5.0 (build 14), minimum iOS 26.0.
+- New rows write `.globalPreferences` only, and are delivered by the
+  Normal method and the partial-restore whitelist. On iOS 26 they are
+  hidden.
+- The engine, backup, and restore paths are unchanged from v4
+  (Normal, iOS 27 Partial Restore, All Data Backup, Restore All Data).
+- In-app Credits updated.
+
+### Before you apply
+
+The warnings under v4 below still apply: Find My iPhone OFF, a
+verified encrypted backup on your computer before any restore, VPN on,
+Low Power Mode OFF, app in the foreground, screen ON.
+
 ## v4 — device-test build
 
 This is a device-test build. It is CI-green and binary-verified only.
